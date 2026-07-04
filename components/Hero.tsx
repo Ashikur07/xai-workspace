@@ -9,6 +9,8 @@ import GlowButton from '@/components/ui/GlowButton'
 import Badge from '@/components/ui/Badge'
 import { easings } from '@/lib/constants'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import FloatingIcons from '@/components/FloatingIcons'
+
 
 /* ═══════════════════════════════════════════════════════════════
    Custom Shader Materials for particles and lines
@@ -423,10 +425,13 @@ function HeroScene() {
 
   return (
     <>
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[5, 5, 5]} intensity={1.5} color="#5B8DEF" />
+      <pointLight position={[-5, -5, 2]} intensity={1.2} color="#A78BFA" />
       <BackgroundGrid />
       <ConstellationLines scrollProgress={scrollProgressRef} />
       <ParticleField scrollProgress={scrollProgressRef} />
+      <FloatingIcons />
       <EffectComposer>
         <Bloom
           intensity={0.5}
