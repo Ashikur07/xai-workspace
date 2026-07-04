@@ -1,11 +1,12 @@
 'use client'
 import { useRef, useMemo, useEffect, useState, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import * as THREE from 'three'
 import { useMousePosition } from '@/hooks/useMousePosition'
 import SectionHeader from '@/components/ui/SectionHeader'
-import { easings } from '@/lib/constants'
+import { easings, colors } from '@/lib/constants'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 type MorphState = 'sphere' | 'cube' | 'torus'
 
@@ -112,6 +113,9 @@ function WireframeLines({
     return geo
   }, [])
 
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const lastWeights = useRef({ sphere: -1, cube: -1, torus: -1 })
+
   useFrame(() => {
     if (!lineRef.current) return
     const pos = lineRef.current.geometry.attributes.position
@@ -119,6 +123,17 @@ function WireframeLines({
     const wSphere = currentWeights.current.sphere
     const wCube = currentWeights.current.cube
     const wTorus = currentWeights.current.torus
+
+    if (prefersReducedMotion) {
+      if (
+        lastWeights.current.sphere === wSphere &&
+        lastWeights.current.cube === wCube &&
+        lastWeights.current.torus === wTorus
+      ) {
+        return
+      }
+      lastWeights.current = { sphere: wSphere, cube: wCube, torus: wTorus }
+    }
 
     // Calculate node positions directly by combining the weighted states
     for (let i = 0; i < NODES; i++) {
@@ -293,8 +308,28 @@ function MorphMesh({ morphTo }: { morphTo: MorphState }) {
     morphProgress.current = 1
   }, [morphTo])
 
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   useFrame(({ clock }) => {
     if (!meshRef.current) return
+
+    if (prefersReducedMotion) {
+      // Instantly switch weights on CPU, avoiding transition animations
+      currentWeights.current.sphere = targetWeights.current.sphere
+      currentWeights.current.cube = targetWeights.current.cube
+      currentWeights.current.torus = targetWeights.current.torus
+
+      uniforms.uTime.value = 0
+      uniforms.uMorphProgress.value = 0
+      uniforms.uWeightSphere.value = currentWeights.current.sphere
+      uniforms.uWeightCube.value = currentWeights.current.cube
+      uniforms.uWeightTorus.value = currentWeights.current.torus
+      uniforms.uMouse.value.set(0, 0)
+
+      meshRef.current.rotation.y = 0.5
+      meshRef.current.rotation.x = 0.3
+      return
+    }
 
     // Lerp weights on CPU
     currentWeights.current.sphere += (targetWeights.current.sphere - currentWeights.current.sphere) * 0.04
@@ -366,7 +401,7 @@ const STATE_INFO: Record<
   sphere: {
     label: 'Raw Data',
     desc: 'Unstructured, distributed, noisy — data in its natural state before processing.',
-    color: '#5B8DEF',
+    color: colors.accent,
     icon: '◉',
     metrics: [
       { label: 'Entropy', value: '0.94' },
@@ -377,7 +412,7 @@ const STATE_INFO: Record<
   cube: {
     label: 'Structured Intelligence',
     desc: 'Data organized into clean, queryable, classified structures ready for analysis.',
-    color: '#A78BFA',
+    color: colors.purple,
     icon: '◧',
     metrics: [
       { label: 'Entropy', value: '0.08' },
@@ -388,7 +423,7 @@ const STATE_INFO: Record<
   torus: {
     label: 'Continuous Flow',
     desc: 'Intelligence in motion — flowing through automated pipelines into looping actions.',
-    color: '#34D399',
+    color: colors.green,
     icon: '◎',
     metrics: [
       { label: 'Throughput', value: '4.8 GB/s' },
@@ -406,12 +441,29 @@ const MORPH_ORDER: MorphState[] = ['sphere', 'cube', 'torus']
 export default function SignatureInteraction() {
   const [morphTo, setMorphTo] = useState<MorphState>('sphere')
   const [loaded, setLoaded] = useState(false)
+  const [webglAvailable, setWebGLAvailable] = useState(true)
+  const [isHovered, setIsHovered] = useState(false)
+  const prefersReducedMotion = usePrefersReducedMotion()
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => { setLoaded(true) }, [])
+  useEffect(() => {
+    setLoaded(true)
+    try {
+      const canvas = document.createElement('canvas')
+      const hasWebGL = !!(
+        window.WebGLRenderingContext && 
+        (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+      )
+      setWebGLAvailable(hasWebGL)
+    } catch (e) {
+      setWebGLAvailable(false)
+    }
+  }, [])
 
   const startCycle = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
+    if (prefersReducedMotion) return // disable auto-cycle for reduced motion
+    
     intervalRef.current = setInterval(() => {
       setMorphTo(prev => {
         const i = MORPH_ORDER.indexOf(prev)
@@ -420,10 +472,22 @@ export default function SignatureInteraction() {
     }, 4000)
   }
 
+  // Manage auto-cycling based on user hover state to let interactive intent win
   useEffect(() => {
-    startCycle()
+    if (isHovered) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    } else {
+      startCycle()
+    }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [])
+  }, [isHovered, prefersReducedMotion])
+
+  const handleCanvasClick = () => {
+    setMorphTo(prev => {
+      const i = MORPH_ORDER.indexOf(prev)
+      return MORPH_ORDER[(i + 1) % MORPH_ORDER.length]
+    })
+  }
 
   const info = STATE_INFO[morphTo]
 
@@ -446,8 +510,15 @@ export default function SignatureInteraction() {
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* 3D Canvas Wrapper — clean transparent background */}
-          <div className="relative" style={{ height: 440 }}>
-            {loaded && (
+          <div 
+            className="relative cursor-pointer" 
+            style={{ height: 440 }}
+            onPointerEnter={() => setIsHovered(true)}
+            onPointerLeave={() => setIsHovered(false)}
+            onClick={handleCanvasClick}
+            aria-hidden="true"
+          >
+            {loaded && webglAvailable ? (
               <Canvas
                 camera={{ position: [0, 0, 7], fov: 50 }}
                 gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
@@ -457,6 +528,45 @@ export default function SignatureInteraction() {
                   <MorphScene morphTo={morphTo} />
                 </Suspense>
               </Canvas>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center border border-border bg-surface/40 rounded-2xl p-6">
+                <div className="text-center">
+                  <motion.div
+                    key={morphTo}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-32 h-32 mx-auto rounded-full border border-dashed flex items-center justify-center"
+                    style={{ borderColor: info.color, color: info.color, background: `${info.color}05` }}
+                  >
+                    {morphTo === 'sphere' && (
+                      <svg viewBox="0 0 100 100" className="w-16 h-16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="50" cy="50" r="40" strokeDasharray="3 3" />
+                        <ellipse cx="50" cy="50" rx="40" ry="15" />
+                        <ellipse cx="50" cy="50" rx="15" ry="40" />
+                      </svg>
+                    )}
+                    {morphTo === 'cube' && (
+                      <svg viewBox="0 0 100 100" className="w-16 h-16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="20" y="20" width="50" height="50" rx="2" />
+                        <rect x="30" y="30" width="50" height="50" rx="2" strokeDasharray="3 3" />
+                        <line x1="20" y1="20" x2="30" y2="30" />
+                        <line x1="70" y1="20" x2="80" y2="30" />
+                        <line x1="20" y1="70" x2="30" y2="80" />
+                        <line x1="70" y1="70" x2="80" y2="80" />
+                      </svg>
+                    )}
+                    {morphTo === 'torus' && (
+                      <svg viewBox="0 0 100 100" className="w-16 h-16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="50" cy="50" r="40" />
+                        <circle cx="50" cy="50" r="20" strokeDasharray="3 3" />
+                      </svg>
+                    )}
+                  </motion.div>
+                  <p className="mt-6 text-sm font-semibold text-text">{info.label} (Fallback Visual)</p>
+                  <p className="mt-2 text-xs font-mono text-muted">WebGL unavailable — showing static vector representation</p>
+                </div>
+              </div>
             )}
           </div>
 
@@ -471,11 +581,11 @@ export default function SignatureInteraction() {
                   <motion.button
                     key={s}
                     onClick={() => { setMorphTo(s); startCycle() }}
-                    className="relative px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="relative px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 outline-none focus-visible:ring-1 focus-visible:ring-accent"
                     style={{
                       background: active ? `${si.color}12` : 'transparent',
-                      border: `1px solid ${active ? si.color + '40' : '#1A2235'}`,
-                      color: active ? si.color : '#3E4A63',
+                      border: `1px solid ${active ? si.color + '40' : colors.border}`,
+                      color: active ? si.color : colors.muted,
                       boxShadow: active ? `0 0 24px ${si.color}12` : 'none',
                     }}
                     whileHover={{ scale: 1.03 }}
@@ -489,51 +599,50 @@ export default function SignatureInteraction() {
             </div>
 
             {/* Dynamic Info Card */}
-            <motion.div
-              key={morphTo}
-              initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <motion.div
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: info.color, boxShadow: `0 0 8px ${info.color}60` }}
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                <p className="font-mono text-xs tracking-widest uppercase" style={{ color: info.color }}>
-                  Current state
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={morphTo}
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 16, filter: 'blur(4px)' }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -16, filter: 'blur(4px)' }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <motion.div
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: info.color, boxShadow: `0 0 8px ${info.color}60` }}
+                    animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <p className="font-mono text-xs tracking-widest uppercase" style={{ color: info.color }}>
+                    Current state
+                  </p>
+                </div>
+                <h3 className="text-3xl font-semibold text-text mb-3">
+                  {info.label}
+                </h3>
+                <p className="text-dim leading-relaxed mb-8 text-sm md:text-base">
+                  {info.desc}
                 </p>
-              </div>
-              <h3 className="text-3xl font-semibold text-[#E2E8F0] mb-3">
-                {info.label}
-              </h3>
-              <p className="text-[#6B7A99] leading-relaxed mb-8 text-sm md:text-base">
-                {info.desc}
-              </p>
 
-              {/* State-specific metrics grid */}
-              <div className="grid grid-cols-3 gap-4">
-                {info.metrics.map((m) => (
-                  <div
-                    key={m.label}
-                    className="rounded-xl border border-[#1A2235] p-4 text-center transition-all duration-300"
-                    style={{
-                      background: '#0A0F16',
-                    }}
-                  >
-                    <p className="text-lg md:text-xl font-semibold font-mono tracking-tight" style={{ color: info.color }}>
-                      {m.value}
-                    </p>
-                    <p className="text-[11px] text-[#3E4A63] mt-1 font-mono uppercase tracking-wider">
-                      {m.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+                {/* State-specific metrics grid */}
+                <div className="grid grid-cols-3 gap-4">
+                  {info.metrics.map((m) => (
+                    <div
+                      key={m.label}
+                      className="rounded-xl border border-border p-4 text-center transition-all duration-300 bg-[#0A0F16]"
+                    >
+                      <p className="text-lg md:text-xl font-semibold font-mono tracking-tight" style={{ color: info.color }}>
+                        {m.value}
+                      </p>
+                      <p className="text-[11px] text-muted mt-1 font-mono uppercase tracking-wider">
+                        {m.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import { colors } from './lib/constants'
 
 const config: Config = {
   content: [
@@ -9,20 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg:         '#060A0F',
-        surface:    '#0C1118',
-        'surface-hover': '#111820',
-        border:     '#1A2235',
-        'border-hover': '#253350',
-        muted:      '#3E4A63',
-        text:       '#E2E8F0',
-        'text-bright': '#F8FAFC',
-        dim:        '#6B7A99',
-        accent:     '#5B8DEF',
-        'accent-hover': '#7BA3F7',
-        glow:       '#3B6FD4',
-        purple:     '#A78BFA',
-        green:      '#34D399',
+        bg:             colors.bg,
+        surface:        colors.surface,
+        'surface-hover': colors.surfaceHover,
+        border:         colors.border,
+        'border-hover':  colors.borderHover,
+        muted:          colors.muted,
+        text:           colors.text,
+        'text-bright':   colors.textBright,
+        dim:            colors.dim,
+        accent:         colors.accent,
+        'accent-hover':  colors.accentHover,
+        glow:           colors.glow,
+        purple:         colors.purple,
+        green:          colors.green,
+        red:            colors.red,
+        yellow:         colors.yellow,
+        cyan:           colors.cyan,
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

@@ -1,14 +1,22 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState, createContext, useContext } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
+
+const LenisContext = createContext<Lenis | null>(null)
+
+export function useLenis() {
+  return useContext(LenisContext)
+}
 
 /**
  * Registers GSAP plugins once at app level.
  * Configures ScrollTrigger and integrates Lenis smooth kinetic scrolling.
  */
 export default function GSAPProvider({ children }: { children: React.ReactNode }) {
+  const [lenis, setLenis] = useState<Lenis | null>(null)
+
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
 
@@ -18,23 +26,32 @@ export default function GSAPProvider({ children }: { children: React.ReactNode }
       duration: 0.8,
     })
 
-    // Initialize Lenis smooth scroll
-    const lenis = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // smooth exponential easing
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-    })
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    // Synchronize ScrollTrigger update events on scroll
-    lenis.on('scroll', ScrollTrigger.update)
+    let lenisInst: Lenis | null = null
+    let tickerUpdate: ((time: number) => void) | null = null
 
-    // Hook Lenis raf loops to the GSAP ticker for performance
-    const tickerUpdate = (time: number) => {
-      lenis.raf(time * 1000)
+    if (!prefersReducedMotion) {
+      // Initialize Lenis smooth scroll
+      lenisInst = new Lenis({
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // smooth exponential easing
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+      })
+
+      setLenis(lenisInst)
+
+      // Synchronize ScrollTrigger update events on scroll
+      lenisInst.on('scroll', ScrollTrigger.update)
+
+      // Hook Lenis raf loops to the GSAP ticker for performance
+      tickerUpdate = (time: number) => {
+        lenisInst?.raf(time * 1000)
+      }
+      gsap.ticker.add(tickerUpdate)
     }
-    gsap.ticker.add(tickerUpdate)
 
     // Disable lag smoothing to keep ticker and scroll aligned perfectly
     gsap.ticker.lagSmoothing(0)
@@ -57,10 +74,18 @@ export default function GSAPProvider({ children }: { children: React.ReactNode }
       window.removeEventListener('resize', onResize)
       cancelAnimationFrame(rafId)
       ScrollTrigger.getAll().forEach(t => t.kill())
-      gsap.ticker.remove(tickerUpdate)
-      lenis.destroy()
+      if (tickerUpdate) {
+        gsap.ticker.remove(tickerUpdate)
+      }
+      if (lenisInst) {
+        lenisInst.destroy()
+      }
     }
   }, [])
 
-  return <>{children}</>
+  return (
+    <LenisContext.Provider value={lenis}>
+      {children}
+    </LenisContext.Provider>
+  )
 }

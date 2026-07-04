@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, useMotionValueEvent } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { INSIGHT_STAGES } from '@/lib/data'
-import { easings } from '@/lib/constants'
+import { easings, colors } from '@/lib/constants'
+import { useLenis } from '@/components/providers/GSAPProvider'
 
 /* ═══════════════════════════════════════════════════════════════
    Animated SVG visuals for each stage
@@ -226,6 +227,40 @@ function InsightVisual({ progress }: { progress: number }) {
 
 const STAGE_VISUALS = [IngestVisual, AnalyzeVisual, InsightVisual]
 
+import { MotionValue } from 'framer-motion'
+
+function StageVisualWrapper({ index, smoothProgressVal }: { index: number; smoothProgressVal: MotionValue<number> }) {
+  const [progress, setProgress] = useState(0)
+
+  useMotionValueEvent(smoothProgressVal, 'change', (latest) => {
+    const progressForStage = index === 0 
+      ? Math.min(latest * 3, 1)
+      : index === 1 
+        ? Math.max(0, Math.min((latest - 0.33) * 3, 1))
+        : Math.max(0, Math.min((latest - 0.66) * 3, 1))
+    
+    setProgress(progressForStage)
+  })
+
+  const Visual = STAGE_VISUALS[index]
+  const opacityVal = useTransform(smoothProgressVal, (p) => getStageOpacity(index, p))
+  const scaleVal = useTransform(opacityVal, (o) => 0.92 + o * 0.08)
+
+  return (
+    <motion.div
+      className="absolute inset-0 flex items-center justify-center transition-all duration-200"
+      style={{
+        opacity: opacityVal,
+        scale: scaleVal,
+        pointerEvents: 'none',
+        willChange: 'transform, opacity',
+      }}
+    >
+      <Visual progress={progress} />
+    </motion.div>
+  )
+}
+
 // Custom crossfade opacity function helper for seamless morphing
 function getStageOpacity(stageIndex: number, p: number) {
   if (stageIndex === 0) {
@@ -254,7 +289,10 @@ function getStageOpacity(stageIndex: number, p: number) {
 export default function InsightFlow() {
   const outerRef = useRef<HTMLDivElement>(null)   // full scroll height wrapper
   const innerRef = useRef<HTMLDivElement>(null)   // sticky content panel
-  const [smoothProgress, setSmoothProgress] = useState(0)
+  const lenis = useLenis()
+
+  const [activeStage, setActiveStage] = useState(0)
+  const smoothProgressVal = useMotionValue(0)
   
   const targetProgressRef = useRef(0)
   const currentProgressRef = useRef(0)
@@ -262,20 +300,36 @@ export default function InsightFlow() {
   const rafRef = useRef<number | null>(null)
   const triggerRef = useRef<ScrollTrigger | null>(null)
 
+  const activeStageRef = useRef(0)
+
   // Physics animation update logic using a responsive LERP (0.12 factor)
   const updatePhysics = useCallback(() => {
     const diff = targetProgressRef.current - currentProgressRef.current
     if (Math.abs(diff) < 0.0002) {
       currentProgressRef.current = targetProgressRef.current
-      setSmoothProgress(currentProgressRef.current)
+      smoothProgressVal.set(currentProgressRef.current)
+      
+      const newStage = Math.min(Math.floor(currentProgressRef.current * 3), 2)
+      if (newStage !== activeStageRef.current) {
+        activeStageRef.current = newStage
+        setActiveStage(newStage)
+      }
+      
       isRunningRef.current = false
       return
     }
 
     currentProgressRef.current += diff * 0.12
-    setSmoothProgress(currentProgressRef.current)
+    smoothProgressVal.set(currentProgressRef.current)
+    
+    const newStage = Math.min(Math.floor(currentProgressRef.current * 3), 2)
+    if (newStage !== activeStageRef.current) {
+      activeStageRef.current = newStage
+      setActiveStage(newStage)
+    }
+
     rafRef.current = requestAnimationFrame(updatePhysics)
-  }, [])
+  }, [smoothProgressVal])
 
   // Use ScrollTrigger to calculate progress reliably across all browsers/layouts
   useEffect(() => {
@@ -305,10 +359,6 @@ export default function InsightFlow() {
     }
   }, [updatePhysics])
 
-  // Derive active stage from smoothProgress
-  const activeStage = Math.min(Math.floor(smoothProgress * 3), 2)
-  const stageProgress = Math.min(smoothProgress * 3 - activeStage, 1)
-  
   const activeData = INSIGHT_STAGES[activeStage]
 
   // Interactive tab click handler - scrolls cleanly to stage height using ScrollTrigger positions
@@ -323,17 +373,23 @@ export default function InsightFlow() {
     const targetP = stageIndex === 0 ? 0.16 : stageIndex === 1 ? 0.5 : 0.84
     const targetScroll = start + targetP * (end - start)
 
-    // Animate scroll smoothly using GSAP to bypass browser/custom scroll conflicts
-    const scrollObj = { y: window.scrollY }
-    gsap.to(scrollObj, {
-      y: targetScroll,
-      duration: 0.85,
-      ease: 'power3.out',
-      onUpdate: () => {
-        window.scrollTo(0, scrollObj.y)
-      }
-    })
+    if (lenis) {
+      lenis.scrollTo(targetScroll, { duration: 0.85 })
+    } else {
+      // Animate scroll smoothly using GSAP to bypass browser/custom scroll conflicts (reduced motion fallback)
+      const scrollObj = { y: window.scrollY }
+      gsap.to(scrollObj, {
+        y: targetScroll,
+        duration: 0.85,
+        ease: 'power3.out',
+        onUpdate: () => {
+          window.scrollTo(0, scrollObj.y)
+        }
+      })
+    }
   }
+
+  const filledWidthVal = useTransform(smoothProgressVal, (p) => `calc(${p * 100}% - ${p * 8}px)`)
 
   return (
     /* Outer: gives 4 "screens" of scroll space for slow smooth transitions */
@@ -345,7 +401,7 @@ export default function InsightFlow() {
           position: 'sticky',
           top: 0,
           height: '100vh',
-          background: '#060A0F',
+          background: colors.bg,
           overflow: 'hidden',
         }}
       >
@@ -365,13 +421,13 @@ export default function InsightFlow() {
           <div className="flex flex-col gap-6 text-center">
             {/* Section header */}
             <div className="pt-2">
-              <p className="text-xs font-mono tracking-[0.2em] uppercase mb-2" style={{ color: '#5B8DEF' }}>
+              <p className="text-xs font-mono tracking-[0.2em] uppercase mb-2 text-accent">
                 How it works
               </p>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] leading-[1.1]" style={{ color: '#E2E8F0' }}>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] leading-[1.1] text-text">
                 Three steps to clarity
               </h2>
-              <p className="mt-3 text-sm md:text-base max-w-lg mx-auto" style={{ color: '#6B7A99' }}>
+              <p className="mt-3 text-sm md:text-base max-w-lg mx-auto text-dim">
                 A complete intelligence pipeline from ingestion to action — automated and observable.
               </p>
             </div>
@@ -379,14 +435,14 @@ export default function InsightFlow() {
             {/* Continuous premium timeline progress bar */}
             <div className="relative max-w-md mx-auto w-full h-8 flex items-center px-2 select-none pointer-events-none">
               {/* The background track */}
-              <div className="absolute left-2 right-2 h-[2px]" style={{ background: '#1A2235' }} />
+              <div className="absolute left-2 right-2 h-[2px] bg-border" />
               
               {/* The filled progress track */}
-              <div
+              <motion.div
                 className="absolute left-2 h-[2px]"
                 style={{
-                  width: `calc(${smoothProgress * 100}% - ${smoothProgress * 8}px)`,
-                  background: `linear-gradient(90deg, #5B8DEF 0%, ${activeData.color} 100%)`,
+                  width: filledWidthVal,
+                  background: `linear-gradient(90deg, ${colors.accent} 0%, ${activeData.color} 100%)`,
                   boxShadow: `0 0 10px ${activeData.color}50`,
                 }}
               />
@@ -400,8 +456,8 @@ export default function InsightFlow() {
                       key={stage.id}
                       className="w-4 h-4 rounded-full border-2 transition-all duration-300 flex items-center justify-center"
                       style={{
-                        background: activeStage === i ? '#060A0F' : active ? stage.color : '#060A0F',
-                        borderColor: active ? stage.color : '#1A2235',
+                        background: activeStage === i ? colors.bg : active ? stage.color : colors.bg,
+                        borderColor: active ? stage.color : colors.border,
                         boxShadow: activeStage === i ? `0 0 12px ${stage.color}` : 'none',
                         transform: activeStage === i ? 'scale(1.15)' : 'none',
                         zIndex: 10,
@@ -421,16 +477,20 @@ export default function InsightFlow() {
             </div>
 
             {/* Stage tabs - fully interactive */}
-            <div className="flex justify-center gap-2 flex-wrap">
+            <div className="flex justify-center gap-2 flex-wrap" role="tablist" aria-label="Insight stages">
               {INSIGHT_STAGES.map((stage, i) => (
                 <button
                   key={stage.id}
                   onClick={() => scrollToStage(i)}
-                  className="relative px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer outline-none select-none hover:bg-[#111927]"
+                  role="tab"
+                  aria-selected={activeStage === i}
+                  aria-controls={`insight-stage-panel-${i}`}
+                  id={`insight-stage-tab-${i}`}
+                  className="relative px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer outline-none select-none hover:bg-surface-hover focus-visible:ring-1 focus-visible:ring-accent"
                   style={{
                     color: activeStage === i ? stage.color : '#4A5B7C',
                     background: activeStage === i ? `${stage.color}10` : 'transparent',
-                    border: `1px solid ${activeStage === i ? stage.color + '30' : '#1A2235'}`,
+                    border: `1px solid ${activeStage === i ? stage.color + '30' : colors.border}`,
                     boxShadow: activeStage === i ? `0 0 20px ${stage.color}10` : 'none',
                     zIndex: 20,
                   }}
@@ -464,30 +524,9 @@ export default function InsightFlow() {
                 />
 
                 <div className="w-full h-full relative">
-                  {STAGE_VISUALS.map((Visual, idx) => {
-                    const opacity = getStageOpacity(idx, smoothProgress)
-                    const scale = 0.92 + opacity * 0.08
-                    const progressForStage = idx === 0 
-                      ? Math.min(smoothProgress * 3, 1)
-                      : idx === 1 
-                        ? Math.max(0, Math.min((smoothProgress - 0.33) * 3, 1))
-                        : Math.max(0, Math.min((smoothProgress - 0.66) * 3, 1))
-                    
-                    return (
-                      <div
-                        key={idx}
-                        className="absolute inset-0 flex items-center justify-center transition-all duration-200"
-                        style={{
-                          opacity: opacity,
-                          transform: `scale(${scale})`,
-                          pointerEvents: opacity > 0.15 ? 'auto' : 'none',
-                          willChange: 'transform, opacity',
-                        }}
-                      >
-                        <Visual progress={progressForStage} />
-                      </div>
-                    )
-                  })}
+                  {STAGE_VISUALS.map((_, idx) => (
+                    <StageVisualWrapper key={idx} index={idx} smoothProgressVal={smoothProgressVal} />
+                  ))}
                 </div>
               </div>
             </div>
@@ -497,6 +536,9 @@ export default function InsightFlow() {
               <AnimatePresence mode="popLayout">
                 <motion.div
                   key={activeStage}
+                  id={`insight-stage-panel-${activeStage}`}
+                  role="tabpanel"
+                  aria-labelledby={`insight-stage-tab-${activeStage}`}
                   initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   exit={{ opacity: 0, y: -15, filter: 'blur(4px)' }}
@@ -506,10 +548,10 @@ export default function InsightFlow() {
                   <p className="font-mono text-xs tracking-[0.15em] uppercase mb-3" style={{ color: activeData.color }}>
                     Step {activeData.tag}
                   </p>
-                  <h3 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4" style={{ color: '#E2E8F0' }}>
+                  <h3 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] mb-4 text-text">
                     {activeData.headline}
                   </h3>
-                  <p className="text-sm md:text-base leading-relaxed mb-6" style={{ color: '#6B7A99' }}>
+                  <p className="text-sm md:text-base leading-relaxed mb-6 text-dim">
                     {activeData.desc}
                   </p>
                   <ul className="space-y-3">
@@ -519,8 +561,7 @@ export default function InsightFlow() {
                         initial={{ opacity: 0, x: 8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 + i * 0.04, duration: 0.3 }}
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: '#8892A4' }}
+                        className="flex items-center gap-3 text-sm text-[#8892A4]"
                       >
                         <span
                           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -542,7 +583,7 @@ export default function InsightFlow() {
                     <div className="font-mono text-xl md:text-2xl font-semibold" style={{ color: activeData.color }}>
                       {activeStage === 0 ? '24' : activeStage === 1 ? '94.2%' : '1,284'}
                     </div>
-                    <div className="text-xs" style={{ color: '#6B7A99' }}>
+                    <div className="text-xs text-dim">
                       {activeStage === 0 ? 'Sources connected' : activeStage === 1 ? 'Avg confidence' : 'Insights generated'}
                     </div>
                   </div>
@@ -553,7 +594,7 @@ export default function InsightFlow() {
 
           {/* Scroll hint */}
           <div className="text-center pb-2">
-            <p className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: '#3E4A63' }}>
+            <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-muted">
               {activeStage < 2 ? 'Keep scrolling' : 'Continue →'}
             </p>
           </div>

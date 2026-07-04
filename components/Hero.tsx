@@ -1,13 +1,14 @@
 'use client'
 import { useRef, useMemo, useEffect, useState, Suspense } from 'react'
-import { Canvas, useFrame, useThree, extend } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import { useMousePosition } from '@/hooks/useMousePosition'
 import GlowButton from '@/components/ui/GlowButton'
 import Badge from '@/components/ui/Badge'
-import { motionVariants, easings, colors } from '@/lib/constants'
+import { easings } from '@/lib/constants'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 /* ═══════════════════════════════════════════════════════════════
    Custom Shader Materials for particles and lines
@@ -118,11 +119,10 @@ const lineFragmentShader = `
 /* ═══════════════════════════════════════════════════════════════
    Particle system that morphs chaos → structured grid on scroll
    ═══════════════════════════════════════════════════════════════ */
-function ParticleField() {
+function ParticleField({ scrollProgress }: { scrollProgress: React.RefObject<number> }) {
   const meshRef = useRef<THREE.Points>(null)
   const mouse = useMousePosition()
-  const progress = useRef(0)
-  const materialRef = useRef<THREE.ShaderMaterial>(null)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const COUNT = 1600
 
@@ -205,19 +205,18 @@ function ParticleField() {
     uPixelRatio: { value: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1 },
   }), [])
 
-  // Scroll tracking
-  useEffect(() => {
-    const onScroll = () => {
-      const t = window.scrollY / (window.innerHeight * 0.9)
-      progress.current = Math.min(Math.max(t, 0), 1)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   useFrame((state) => {
     if (!meshRef.current) return
-    const t = progress.current
+
+    if (prefersReducedMotion) {
+      uniforms.uProgress.value = 1.0
+      uniforms.uTime.value = 0
+      meshRef.current.rotation.y = 0
+      meshRef.current.rotation.x = 0
+      return
+    }
+
+    const t = scrollProgress.current ?? 0
     // Smooth ease in-out
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
@@ -239,7 +238,6 @@ function ParticleField() {
   return (
     <points ref={meshRef} geometry={geometry}>
       <shaderMaterial
-        ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
@@ -254,9 +252,9 @@ function ParticleField() {
 /* ═══════════════════════════════════════════════════════════════
    Constellation lines morphing from sphere cluster to grid mesh
    ═══════════════════════════════════════════════════════════════ */
-function ConstellationLines() {
+function ConstellationLines({ scrollProgress }: { scrollProgress: React.RefObject<number> }) {
   const lineRef = useRef<THREE.LineSegments>(null)
-  const progress = useRef(0)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const { chaosPositions, gridPositions } = useMemo(() => {
     const NODES = 40
@@ -318,17 +316,18 @@ function ConstellationLines() {
     uOpacity: { value: 0.05 },
   }), [])
 
-  useEffect(() => {
-    const onScroll = () => {
-      progress.current = Math.min(window.scrollY / (window.innerHeight * 0.9), 1)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   useFrame((state) => {
     if (!lineRef.current) return
-    const t = progress.current
+    
+    if (prefersReducedMotion) {
+      uniforms.uProgress.value = 1.0
+      uniforms.uTime.value = 0
+      uniforms.uOpacity.value = 0.03
+      lineRef.current.rotation.y = 0
+      return
+    }
+
+    const t = scrollProgress.current ?? 0
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
     
     uniforms.uProgress.value = ease
@@ -410,12 +409,24 @@ function BackgroundGrid() {
    Three.js Scene wrapper
    ═══════════════════════════════════════════════════════════════ */
 function HeroScene() {
+  const scrollProgressRef = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const t = window.scrollY / (window.innerHeight * 0.9)
+      scrollProgressRef.current = Math.min(Math.max(t, 0), 1)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
     <>
       <ambientLight intensity={0.3} />
       <BackgroundGrid />
-      <ConstellationLines />
-      <ParticleField />
+      <ConstellationLines scrollProgress={scrollProgressRef} />
+      <ParticleField scrollProgress={scrollProgressRef} />
       <EffectComposer>
         <Bloom
           intensity={0.5}
@@ -433,13 +444,35 @@ function HeroScene() {
    ═══════════════════════════════════════════════════════════════ */
 export default function Hero() {
   const [loaded, setLoaded] = useState(false)
-  useEffect(() => { setLoaded(true) }, [])
+  const [webglAvailable, setWebglAvailable] = useState(true)
+  const prefersReducedMotion = usePrefersReducedMotion()
+
+  useEffect(() => {
+    setLoaded(true)
+    try {
+      const canvas = document.createElement('canvas')
+      const hasWebGL = !!(
+        window.WebGLRenderingContext && 
+        (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+      )
+      setWebglAvailable(hasWebGL)
+    } catch (e) {
+      setWebglAvailable(false)
+    }
+  }, [])
 
   const container = {
     hidden: {},
     show: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } },
   }
-  const item = {
+  
+  const item = prefersReducedMotion ? {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { duration: 0.4 },
+    },
+  } : {
     hidden: { opacity: 0, y: 32, filter: 'blur(8px)' },
     show: {
       opacity: 1, y: 0, filter: 'blur(0px)',
@@ -460,7 +493,7 @@ export default function Hero() {
             background: 'radial-gradient(circle, rgba(91,141,239,0.08) 0%, transparent 65%)',
             top: '5%', left: '10%',
           }}
-          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+          animate={prefersReducedMotion ? {} : { x: [0, 40, 0], y: [0, -30, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
@@ -469,14 +502,14 @@ export default function Hero() {
             background: 'radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 65%)',
             bottom: '15%', right: '5%',
           }}
-          animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
+          animate={prefersReducedMotion ? {} : { x: [0, -30, 0], y: [0, 20, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
         />
       </div>
 
       {/* Full screen Three.js Canvas */}
-      <div className="absolute inset-0 z-0">
-        {loaded && (
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        {loaded && webglAvailable ? (
           <Canvas
             camera={{ position: [0, 0, 8], fov: 55 }}
             gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
@@ -486,6 +519,14 @@ export default function Hero() {
               <HeroScene />
             </Suspense>
           </Canvas>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0C1118] via-[#060A0F] to-[#0C1118] opacity-60 flex items-center justify-center">
+            {/* Static fallback glow orbs */}
+            <div className="w-[500px] h-[500px] rounded-full blur-[120px] absolute top-[10%] left-[10%]"
+              style={{ background: 'radial-gradient(circle, rgba(91,141,239,0.08) 0%, transparent 65%)' }} />
+            <div className="w-[400px] h-[400px] rounded-full blur-[100px] absolute bottom-[15%] right-[5%]"
+              style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 65%)' }} />
+          </div>
         )}
       </div>
 

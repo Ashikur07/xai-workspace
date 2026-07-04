@@ -118,7 +118,9 @@ export default function Navbar() {
           {/* Mobile hamburger menu */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden flex flex-col justify-center items-center w-8 h-8 rounded-full border border-[#1A2235] bg-[#0A0F16]/60 hover:bg-[#111927] transition-all duration-300"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            className="md:hidden flex flex-col justify-center items-center w-8 h-8 rounded-full border border-[#1A2235] bg-[#0A0F16]/60 hover:bg-[#111927] transition-all duration-300 outline-none focus-visible:ring-1 focus-visible:ring-accent"
           >
             <span className={`w-3.5 h-[1.5px] bg-[#E2E8F0] transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-[1px]' : '-translate-y-[2px]'}`} />
             <span className={`w-3.5 h-[1.5px] bg-[#E2E8F0] transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-[0.5px]' : 'translate-y-[2px]'}`} />

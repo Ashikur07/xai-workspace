@@ -16,7 +16,8 @@ import {
 import { useAnimatedCounter } from '@/hooks/useAnimatedCounter'
 import Card from '@/components/ui/Card'
 import SectionHeader from '@/components/ui/SectionHeader'
-import { easings } from '@/lib/constants'
+import { easings, colors } from '@/lib/constants'
+import SourcesTable from '@/components/ui/SourcesTable'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   home:     <Home size={14} />,
@@ -26,45 +27,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   layers:   <Layers size={14} />,
 }
 
-/* â”€â”€ Status Badge â”€â”€ */
-function StatusBadge({ status }: { status: string }) {
-  const colorMap: Record<string, string> = {
-    Active: '#34D399', Syncing: '#FBBF24', Paused: '#3E4A63',
-  }
-  const color = colorMap[status] ?? '#6B7A99'
-  return (
-    <span className="flex items-center gap-1.5 text-xs font-mono" style={{ color }}>
-      <motion.span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-        style={{ background: color }}
-        animate={status === 'Active' ? { opacity: [1, 0.4, 1] } : {}}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-      {status}
-    </span>
-  )
-}
-
-/* â”€â”€ Confidence Bar â”€â”€ */
-function ConfBar({ value, visible }: { value: number; visible: boolean }) {
-  const color = value > 90 ? '#34D399' : value > 80 ? '#5B8DEF' : '#FBBF24'
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: '#1A2235' }}>
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: color }}
-          initial={{ width: 0 }}
-          animate={{ width: visible ? `${value}%` : 0 }}
-          transition={{ duration: 1.2, delay: 0.3, ease: easings.smooth }}
-        />
-      </div>
-      <span className="text-xs font-mono w-10 text-right" style={{ color: '#6B7A99' }}>{value}%</span>
-    </div>
-  )
-}
-
-/* â”€â”€ Sparkline â”€â”€ */
+/* ── Sparkline ── */
 function Sparkline({ data, color, height = 24 }: { data: number[]; color: string; height?: number }) {
   const max = Math.max(...data)
   const min = Math.min(...data)
@@ -83,7 +46,7 @@ function Sparkline({ data, color, height = 24 }: { data: number[]; color: string
   )
 }
 
-/* â”€â”€ Dynamic Metric Card â”€â”€ */
+/* ── Dynamic Metric Card ── */
 function MetricCard({
   metric, visible, index,
 }: {
@@ -106,18 +69,18 @@ function MetricCard({
     >
       <Card glass padding="md" className="cursor-default group">
         <div className="flex items-start justify-between mb-3">
-          <p className="text-xs" style={{ color: '#6B7A99' }}>{metric.label}</p>
-          <Sparkline data={sparkData} color={metric.up ? '#34D399' : '#F87171'} />
+          <p className="text-xs text-dim">{metric.label}</p>
+          <Sparkline data={sparkData} color={metric.up ? colors.green : colors.red} />
         </div>
-        <p className="text-2xl font-semibold font-mono tracking-tight" style={{ color: '#E2E8F0' }}>
+        <p className="text-2xl font-semibold font-mono tracking-tight text-text">
           {animatedValue}
         </p>
         <div className="flex items-center gap-1 mt-1.5">
           {metric.up
-            ? <ArrowUpRight size={12} style={{ color: '#34D399' }} />
-            : <ArrowDownRight size={12} style={{ color: '#F87171' }} />
+            ? <ArrowUpRight size={12} className="text-green" />
+            : <ArrowDownRight size={12} className="text-red" />
           }
-          <p className="text-xs font-mono" style={{ color: metric.up ? '#34D399' : '#F87171' }}>
+          <p className="text-xs font-mono text-green" style={{ color: metric.up ? colors.green : colors.red }}>
             {metric.delta}
           </p>
         </div>
@@ -126,25 +89,25 @@ function MetricCard({
   )
 }
 
-/* â”€â”€ 0: Overview â”€â”€ */
+/* ── 0: Overview ── */
 function OverviewView({ visible }: { visible: boolean }) {
-  const [hoverRow, setHoverRow] = useState<number | null>(null)
+  const [hoverBar, setHoverBar] = useState<number | null>(null)
   return (
     <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
       <Card glass padding="md" hover={false} className="mb-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs" style={{ color: '#6B7A99' }}>Insight Volume</p>
+            <p className="text-xs text-dim">Insight Volume</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-xl font-semibold font-mono" style={{ color: '#E2E8F0' }}>38,204</p>
-              <span className="flex items-center gap-0.5 text-xs font-mono" style={{ color: '#34D399' }}>
+              <p className="text-xl font-semibold font-mono text-text">38,204</p>
+              <span className="flex items-center gap-0.5 text-xs font-mono text-green">
                 <TrendingUp size={10} /> +22%
               </span>
             </div>
           </div>
-          <div className="flex gap-4 text-xs" style={{ color: '#6B7A99' }}>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: '#5B8DEF' }} />Insights</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: '#A78BFA' }} />Signals</span>
+          <div className="flex gap-4 text-xs text-dim">
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-accent" />Insights</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple" />Signals</span>
           </div>
         </div>
         <div className="flex items-end gap-1.5 h-28">
@@ -154,58 +117,28 @@ function OverviewView({ visible }: { visible: boolean }) {
               className="flex-1 rounded-t cursor-pointer"
               style={{
                 height: `${bar.value}%`,
-                background: hoverRow === i + 100 ? '#5B8DEF' : i === CHART_DATA.length - 1 ? '#5B8DEF' : '#1A2235',
+                background: hoverBar === i ? colors.accent : i === CHART_DATA.length - 1 ? colors.accent : colors.border,
                 transformOrigin: 'bottom',
-                boxShadow: (hoverRow === i + 100 || i === CHART_DATA.length - 1) ? '0 0 12px rgba(91,141,239,0.3)' : 'none',
+                boxShadow: (hoverBar === i || i === CHART_DATA.length - 1) ? '0 0 12px rgba(91,141,239,0.3)' : 'none',
               }}
               initial={{ scaleY: 0 }}
               animate={visible ? { scaleY: 1 } : { scaleY: 0 }}
               transition={{ delay: 0.4 + i * 0.04, duration: 0.6, ease: easings.bounce }}
-              onHoverStart={() => setHoverRow(i + 100)}
-              onHoverEnd={() => setHoverRow(null)}
+              onHoverStart={() => setHoverBar(i)}
+              onHoverEnd={() => setHoverBar(null)}
             />
           ))}
         </div>
-        <div className="flex justify-between text-[10px] mt-2 font-mono" style={{ color: '#3E4A63' }}>
+        <div className="flex justify-between text-[10px] mt-2 font-mono text-muted">
           {CHART_DATA.map(d => <span key={d.month}>{d.month}</span>)}
         </div>
       </Card>
       <Card glass padding="sm" hover={false}>
-        <div className="flex items-center justify-between px-3 py-3 border-b" style={{ borderColor: '#1A2235' }}>
-          <p className="text-sm font-medium" style={{ color: '#E2E8F0' }}>Connected Sources</p>
-          <p className="text-xs font-mono" style={{ color: '#3E4A63' }}>{TABLE_ROWS.length} sources</p>
+        <div className="flex items-center justify-between px-3 py-3 border-b border-border">
+          <p className="text-sm font-medium text-text">Connected Sources</p>
+          <p className="text-xs font-mono text-muted">{TABLE_ROWS.length} sources</p>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b" style={{ borderColor: '#1A2235' }}>
-              {['Source', 'Type', 'Records', 'Status', 'Confidence'].map(h => (
-                <th key={h} className="text-left px-3 py-2.5 text-xs font-medium" style={{ color: '#3E4A63' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {TABLE_ROWS.map((row, i) => (
-              <motion.tr
-                key={row.source}
-                className="border-b cursor-pointer"
-                style={{ borderColor: '#1A223540', background: hoverRow === i ? '#1A223560' : 'transparent' }}
-                onHoverStart={() => setHoverRow(i)}
-                onHoverEnd={() => setHoverRow(null)}
-                initial={{ opacity: 0, x: -8 }}
-                animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-                transition={{ delay: 0.6 + i * 0.06, duration: 0.4 }}
-              >
-                <td className="px-3 py-3 font-medium text-xs" style={{ color: '#E2E8F0' }}>{row.source}</td>
-                <td className="px-3 py-3">
-                  <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: '#6B7A99', background: '#1A223580' }}>{row.type}</span>
-                </td>
-                <td className="px-3 py-3 text-xs font-mono" style={{ color: '#6B7A99' }}>{row.records}</td>
-                <td className="px-3 py-3"><StatusBadge status={row.status} /></td>
-                <td className="px-3 py-3 w-36"><ConfBar value={row.confidence} visible={visible} /></td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+        <SourcesTable visible={visible} />
       </Card>
     </motion.div>
   )
@@ -279,26 +212,24 @@ function InsightsView({ visible }: { visible: boolean }) {
   )
 }
 
-/* â”€â”€ 2: Sources â”€â”€ */
+/* ── 2: Sources ── */
 function SourcesView({ visible }: { visible: boolean }) {
-  const [hoverRow, setHoverRow] = useState<number | null>(null)
   return (
     <motion.div key="sources-view" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
       <div className="flex gap-2 mb-4 flex-wrap">
         {[
-          { label: 'Active', count: 18, color: '#34D399' },
-          { label: 'Syncing', count: 3, color: '#FBBF24' },
-          { label: 'Paused', count: 3, color: '#3E4A63' },
+          { label: 'Active', count: 18, color: colors.green },
+          { label: 'Syncing', count: 3, color: colors.yellow },
+          { label: 'Paused', count: 3, color: colors.muted },
         ].map(s => (
-          <div key={s.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border" style={{ borderColor: '#1A2235', background: '#0A0F16' }}>
+          <div key={s.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-[#0A0F16]">
             <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
-            <span className="text-xs font-mono" style={{ color: '#6B7A99' }}>{s.label}</span>
+            <span className="text-xs font-mono text-dim">{s.label}</span>
             <span className="text-xs font-semibold font-mono" style={{ color: s.color }}>{s.count}</span>
           </div>
         ))}
         <motion.button
-          className="ml-auto flex items-center gap-1.5 text-xs text-white px-3.5 py-1.5 rounded-lg font-medium"
-          style={{ background: '#5B8DEF' }}
+          className="ml-auto flex items-center gap-1.5 text-xs text-white px-3.5 py-1.5 rounded-lg font-medium bg-accent outline-none focus-visible:ring-1 focus-visible:ring-accent"
           whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(91,141,239,0.3)' }}
           whileTap={{ scale: 0.97 }}
         >
@@ -306,45 +237,7 @@ function SourcesView({ visible }: { visible: boolean }) {
         </motion.button>
       </div>
       <Card glass padding="sm" hover={false}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b" style={{ borderColor: '#1A2235' }}>
-              {['Source', 'Type', 'Records', 'Status', 'Confidence'].map(h => (
-                <th key={h} className="text-left px-3 py-2.5 text-xs font-medium" style={{ color: '#3E4A63' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {TABLE_ROWS.map((row, i) => (
-              <motion.tr
-                key={row.source}
-                className="border-b cursor-pointer"
-                style={{ borderColor: '#1A223540', background: hoverRow === i ? '#1A223560' : 'transparent' }}
-                onHoverStart={() => setHoverRow(i)}
-                onHoverEnd={() => setHoverRow(null)}
-                initial={{ opacity: 0, x: -8 }}
-                animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-                transition={{ delay: 0.2 + i * 0.07, duration: 0.4 }}
-              >
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded flex items-center justify-center text-[9px] font-mono font-bold"
-                      style={{ background: '#1A2235', color: '#5B8DEF' }}>
-                      {row.source.slice(0, 2).toUpperCase()}
-                    </div>
-                    <span className="font-medium text-xs" style={{ color: '#E2E8F0' }}>{row.source}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-3">
-                  <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: '#6B7A99', background: '#1A223580' }}>{row.type}</span>
-                </td>
-                <td className="px-3 py-3 text-xs font-mono" style={{ color: '#6B7A99' }}>{row.records}</td>
-                <td className="px-3 py-3"><StatusBadge status={row.status} /></td>
-                <td className="px-3 py-3 w-36"><ConfBar value={row.confidence} visible={visible} /></td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+        <SourcesTable visible={visible} showAvatar={true} />
       </Card>
     </motion.div>
   )
@@ -616,15 +509,19 @@ export default function Dashboard() {
               <span className="text-sm font-semibold" style={{ color: '#E2E8F0' }}>Xai</span>
               <ChevronDown size={11} className="ml-auto" style={{ color: '#3E4A63' }} />
             </div>
-            <nav className="space-y-0.5 flex-1">
+            <nav className="space-y-0.5 flex-1" role="tablist" aria-label="Dashboard views">
               {NAV_ITEMS.map((n, i) => (
                 <motion.button
                   key={n.label}
                   onClick={() => setActiveNav(i)}
-                  className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all duration-150 text-left"
+                  role="tab"
+                  aria-selected={activeNav === i}
+                  aria-controls={`dashboard-tabpanel-${i}`}
+                  id={`dashboard-tab-${i}`}
+                  className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all duration-150 text-left outline-none focus-visible:ring-1 focus-visible:ring-accent"
                   style={{
-                    color: activeNav === i ? '#E2E8F0' : '#3E4A63',
-                    background: activeNav === i ? '#1A2235' : 'transparent',
+                    color: activeNav === i ? '#E2E8F0' : colors.muted,
+                    background: activeNav === i ? colors.border : 'transparent',
                   }}
                   whileHover={{ x: 2 }}
                 >
@@ -632,8 +529,7 @@ export default function Dashboard() {
                   {n.label}
                   {activeNav === i && (
                     <motion.div
-                      className="absolute left-0 w-[2px] h-5 rounded-r"
-                      style={{ background: '#5B8DEF' }}
+                      className="absolute left-0 w-[2px] h-5 rounded-r bg-accent"
                       layoutId="navIndicator"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
@@ -672,14 +568,16 @@ export default function Dashboard() {
                 </motion.div>
               </AnimatePresence>
               <div className="flex items-center gap-3">
-                <select className="text-xs border rounded-lg px-3 py-1.5 outline-none cursor-pointer"
-                  style={{ background: '#0A0F16', borderColor: '#1A2235', color: '#6B7A99' }}>
+                <select 
+                  className="text-xs border rounded-lg px-3 py-1.5 outline-none cursor-pointer focus-visible:ring-1 focus-visible:ring-accent"
+                  aria-label="Time range filter"
+                  style={{ background: '#0A0F16', borderColor: colors.border, color: colors.dim }}
+                >
                   <option>Last 30 days</option>
                   <option>Last 7 days</option>
                 </select>
                 <motion.button
-                  className="flex items-center gap-1.5 text-xs text-white px-3.5 py-1.5 rounded-lg font-medium"
-                  style={{ background: '#5B8DEF' }}
+                  className="flex items-center gap-1.5 text-xs text-white px-3.5 py-1.5 rounded-lg font-medium bg-accent outline-none focus-visible:ring-1 focus-visible:ring-accent"
                   whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(91,141,239,0.3)' }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -701,11 +599,19 @@ export default function Dashboard() {
             {/* Content */}
             <div className="flex-1 px-5 pb-5 overflow-auto">
               <AnimatePresence mode="wait">
-                {activeNav === 0 && <OverviewView  key="ov" visible={visible} />}
-                {activeNav === 1 && <InsightsView  key="iv" visible={visible} />}
-                {activeNav === 2 && <SourcesView   key="sv" visible={visible} />}
-                {activeNav === 3 && <AnalyticsView key="av" visible={visible} />}
-                {activeNav === 4 && <PipelineView  key="pv" visible={visible} />}
+                <div
+                  key={`panel-${activeNav}`}
+                  id={`dashboard-tabpanel-${activeNav}`}
+                  role="tabpanel"
+                  aria-labelledby={`dashboard-tab-${activeNav}`}
+                  className="h-full w-full"
+                >
+                  {activeNav === 0 && <OverviewView  key="ov" visible={visible} />}
+                  {activeNav === 1 && <InsightsView  key="iv" visible={visible} />}
+                  {activeNav === 2 && <SourcesView   key="sv" visible={visible} />}
+                  {activeNav === 3 && <AnalyticsView key="av" visible={visible} />}
+                  {activeNav === 4 && <PipelineView  key="pv" visible={visible} />}
+                </div>
               </AnimatePresence>
             </div>
           </div>
