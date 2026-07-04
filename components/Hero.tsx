@@ -546,16 +546,16 @@ export default function Hero() {
         animate="show"
       >
         {/* Badge */}
-        <motion.div variants={item} className="inline-flex items-center gap-2 mb-10">
+        <motion.div variants={item} className="inline-flex items-center gap-2 mb-6 md:mb-10">
           <Badge color="#5B8DEF" pulse variant="filled">
             <span>Intelligence Workspace</span>
             <span className="mx-2 opacity-30">·</span>
-            <span style={{ color: '#8892A4' }}>v2.4 Live</span>
+            <span style={{ color: '#94A3B8' }}>v2.4 Live</span>
           </Badge>
         </motion.div>
 
         {/* Headline */}
-        <motion.div variants={item} className="mb-7">
+        <motion.div variants={item} className="mb-5 md:mb-7">
           <h1 className="text-[clamp(2.8rem,7vw,6.2rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span className="block mb-1" style={{ color: '#E2E8F0' }}>Raw data.</span>
             <span className="block gradient-text">
@@ -567,15 +567,15 @@ export default function Hero() {
         {/* Subtext - increased contrast slightly for readability */}
         <motion.p
           variants={item}
-          className="text-base md:text-lg max-w-lg mx-auto leading-relaxed mb-12"
-          style={{ color: '#8892A4', fontWeight: 350 }}
+          className="text-base md:text-lg max-w-lg mx-auto leading-relaxed mb-8 md:mb-12"
+          style={{ color: '#94A3B8', fontWeight: 400 }}
         >
           Xai transforms unstructured data into structured intelligence —
           surfacing insight that drives decisions at the speed of thought.
         </motion.p>
 
         {/* CTAs */}
-        <motion.div variants={item} className="flex items-center justify-center gap-4 flex-wrap mb-20">
+        <motion.div variants={item} className="flex items-center justify-center gap-4 flex-wrap mb-10 md:mb-16">
           <GlowButton>Start free trial</GlowButton>
           <GlowButton variant="secondary">
             Watch demo <span className="ml-1 opacity-50">→</span>
@@ -593,8 +593,8 @@ export default function Hero() {
             { value: '<200ms', label: 'Avg latency' },
           ].map((stat, i) => (
             <div key={i} className="text-center">
-              <p className="text-xl md:text-2xl font-semibold font-mono tracking-tight gradient-text-accent">{stat.value}</p>
-              <p className="text-xs mt-1 tracking-wide" style={{ color: '#4A5568' }}>{stat.label}</p>
+              <p className="text-2xl md:text-3xl font-bold font-mono tracking-tight gradient-text-accent">{stat.value}</p>
+              <p className="text-xs md:text-sm mt-1.5 tracking-wide" style={{ color: '#CBD5E1', fontWeight: 400 }}>{stat.label}</p>
             </div>
           ))}
         </motion.div>
@@ -602,12 +602,12 @@ export default function Hero() {
 
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3"
+        className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-3 hide-on-short-screens"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 2.5, duration: 0.6 }}
       >
-        <p className="text-[10px] font-mono tracking-[0.25em] uppercase text-[#3E4A63]">Scroll</p>
+        <p className="text-[10px] font-mono tracking-[0.25em] uppercase text-[#8892A4]">Scroll</p>
         <div className="w-5 h-9 rounded-full border flex items-start justify-center pt-2" style={{ borderColor: '#1A2235' }}>
           <motion.div
             className="w-1 h-2 rounded-full"

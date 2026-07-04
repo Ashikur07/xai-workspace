@@ -202,6 +202,14 @@ body {
   border-radius: 4px;
 }
 
+/* ── Hide on short screens ── */
+@media (max-height: 780px) {
+  .hide-on-short-screens {
+    display: none !important;
+  }
+}
+
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
 
