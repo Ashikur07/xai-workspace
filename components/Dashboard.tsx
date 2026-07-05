@@ -481,7 +481,7 @@ export default function Dashboard() {
 
   return (
     <DashboardAnimContext.Provider value={isScrollingDown}>
-      <section ref={sectionRef} className="py-32 px-6 relative">
+      <section id="insights" ref={sectionRef} className="py-32 px-6 relative">
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 50% 40% at 50% 30%, rgba(91,141,239,0.04) 0%, transparent 70%)' }}
         />

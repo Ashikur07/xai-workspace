@@ -470,7 +470,7 @@ export default function InsightFlow() {
   const glowingLineHeight = useTransform(scrollYProgress, [0.15, 0.85], ['0%', '100%'])
 
   return (
-    <section ref={containerRef} className="relative py-32 px-6 overflow-hidden bg-bg">
+    <section id="platform" ref={containerRef} className="relative py-32 px-6 overflow-hidden bg-bg">
       {/* Background radial glow */}
       <div className="absolute inset-0 grid-bg opacity-15 pointer-events-none" />
 

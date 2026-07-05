@@ -515,7 +515,7 @@ export default function SignatureInteraction() {
   const info = STATE_INFO[morphTo]
 
   return (
-    <section className="relative py-32 px-6 overflow-hidden grid-bg">
+    <section id="docs" className="relative py-32 px-6 overflow-hidden grid-bg">
       {/* Background glow radial tint */}
       <div
         className="absolute inset-0 pointer-events-none transition-all duration-1000"

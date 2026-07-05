@@ -8,7 +8,7 @@ export default function Footer() {
   const isExport = useIsExport()
 
   return (
-    <footer className="border-t py-20 px-6 relative" style={{ borderColor: '#1A2235' }}>
+    <footer id="pricing" className="border-t py-20 px-6 relative" style={{ borderColor: '#1A2235' }}>
       {/* Subtle top gradient */}
       <div className="absolute top-0 left-0 right-0 h-px"
         style={{ background: 'linear-gradient(90deg, transparent, rgba(91,141,239,0.2), transparent)' }} />

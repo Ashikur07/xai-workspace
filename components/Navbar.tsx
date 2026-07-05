@@ -1,6 +1,7 @@
 'use client'
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { useLenis } from '@/components/providers/GSAPProvider'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -10,11 +11,25 @@ export default function Navbar() {
 
   useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 20))
 
+  const lenis = useLenis()
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    if (lenis) {
+      lenis.scrollTo(href, { offset: -80, duration: 1.2 })
+    } else {
+      const element = document.querySelector(href)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+  }
+
   const navLinks = [
-    { label: 'Platform', href: '#platform' },
-    { label: 'Insights', href: '#insights' },
-    { label: 'Docs', href: '#docs' },
-    { label: 'Pricing', href: '#pricing' }
+    { label: 'Home', href: '#hero' },
+    { label: 'Pipeline', href: '#platform' },
+    { label: 'Dashboard', href: '#insights' },
+    { label: 'Interaction', href: '#docs' }
   ]
 
   return (
@@ -63,7 +78,8 @@ export default function Navbar() {
             <motion.a
               key={item.label}
               href={item.href}
-              className="relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-300 select-none"
+              onClick={(e) => handleLinkClick(e, item.href)}
+              className="relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-300 select-none cursor-pointer"
               style={{
                 color: hoveredIndex === index ? '#E2E8F0' : '#8892A4',
               }}
@@ -141,8 +157,11 @@ export default function Navbar() {
                 <a
                   key={item.label}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#8892A4] hover:text-[#E2E8F0] hover:bg-[#111927] transition-all duration-200"
+                  onClick={(e) => {
+                    setIsOpen(false)
+                    handleLinkClick(e, item.href)
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-[#8892A4] hover:text-[#E2E8F0] hover:bg-[#111927] transition-all duration-200 cursor-pointer"
                 >
                   {item.label}
                 </a>
