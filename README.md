@@ -14,6 +14,16 @@ A high-fidelity, interactive product experience built for the RacoAI frontend en
 
 ---
 
+## 📸 Application Previews
+
+| 🌌 3D Particle Hero Section | 📊 Intelligence SaaS Dashboard |
+| :---: | :---: |
+| <img src="public/screenshots/hero.png" width="100%" alt="Hero Section Preview" /> | <img src="public/screenshots/dashboard.png" width="100%" alt="Dashboard Preview" /> |
+| **🌀 Interactive Pipeline Flow** | **🔮 Signature 3D Geometry Morph** |
+| <img src="public/screenshots/timeline.png" width="100%" alt="Timeline Preview" /> | <img src="public/screenshots/interaction.png" width="100%" alt="Interaction Preview" /> |
+
+---
+
 ## 🛠️ Technology Stack
 
 | Layer | Technology | Rationale |
