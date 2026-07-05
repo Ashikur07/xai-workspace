@@ -52,47 +52,49 @@ export default function SourcesTable({ visible, showAvatar = false }: SourcesTab
   const [hoverRow, setHoverRow] = useState<number | null>(null)
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-border">
-          {['Source', 'Type', 'Records', 'Status', 'Confidence'].map(h => (
-            <th key={h} className="text-left px-3 py-2.5 text-xs font-medium text-muted">{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {TABLE_ROWS.map((row, i) => (
-          <motion.tr
-            key={row.source}
-            className="border-b border-border/25 cursor-pointer"
-            style={{ background: hoverRow === i ? 'rgba(26, 34, 53, 0.38)' : 'transparent' }}
-            onHoverStart={() => setHoverRow(i)}
-            onHoverEnd={() => setHoverRow(null)}
-            initial={{ opacity: 0, x: -8 }}
-            animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-            transition={{ delay: (showAvatar ? 0.2 : 0.6) + i * 0.06, duration: 0.4 }}
-          >
-            <td className="px-3 py-3">
-              {showAvatar ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded flex items-center justify-center text-[9px] font-mono font-bold bg-border text-accent">
-                    {row.source.slice(0, 2).toUpperCase()}
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border">
+            {['Source', 'Type', 'Records', 'Status', 'Confidence'].map(h => (
+              <th key={h} className="text-left px-3 py-2.5 text-xs font-medium text-muted">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {TABLE_ROWS.map((row, i) => (
+            <motion.tr
+              key={row.source}
+              className="border-b border-border/25 cursor-pointer"
+              style={{ background: hoverRow === i ? 'rgba(26, 34, 53, 0.38)' : 'transparent' }}
+              onHoverStart={() => setHoverRow(i)}
+              onHoverEnd={() => setHoverRow(null)}
+              initial={{ opacity: 0, x: -8 }}
+              animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
+              transition={{ delay: (showAvatar ? 0.2 : 0.6) + i * 0.06, duration: 0.4 }}
+            >
+              <td className="px-3 py-3">
+                {showAvatar ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded flex items-center justify-center text-[9px] font-mono font-bold bg-border text-accent">
+                      {row.source.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="font-medium text-xs text-text">{row.source}</span>
                   </div>
+                ) : (
                   <span className="font-medium text-xs text-text">{row.source}</span>
-                </div>
-              ) : (
-                <span className="font-medium text-xs text-text">{row.source}</span>
-              )}
-            </td>
-            <td className="px-3 py-3">
-              <span className="text-xs font-mono px-2 py-0.5 rounded text-dim bg-border/50">{row.type}</span>
-            </td>
-            <td className="px-3 py-3 text-xs font-mono text-dim">{row.records}</td>
-            <td className="px-3 py-3"><StatusBadge status={row.status} /></td>
-            <td className="px-3 py-3 w-36"><ConfBar value={row.confidence} visible={visible} /></td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
+                )}
+              </td>
+              <td className="px-3 py-3">
+                <span className="text-xs font-mono px-2 py-0.5 rounded text-dim bg-border/50">{row.type}</span>
+              </td>
+              <td className="px-3 py-3 text-xs font-mono text-dim">{row.records}</td>
+              <td className="px-3 py-3"><StatusBadge status={row.status} /></td>
+              <td className="px-3 py-3 w-36"><ConfBar value={row.confidence} visible={visible} /></td>
+            </motion.tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

@@ -511,9 +511,9 @@ export default function Dashboard() {
             <div className="w-3 h-3 rounded-full" style={{ background: '#FBBF24', opacity: 0.7 }} />
             <div className="w-3 h-3 rounded-full" style={{ background: '#34D399', opacity: 0.7 }} />
           </div>
-          <div className="flex-1 mx-4 h-7 rounded-lg flex items-center px-3" style={{ background: '#0A0F16' }}>
-            <Search size={11} style={{ color: '#3E4A63' }} className="mr-2" />
-            <span className="text-xs font-mono" style={{ color: '#3E4A63' }}>app.xai.io/workspace</span>
+          <div className="flex-1 mx-4 h-7 rounded-lg flex items-center px-3 min-w-0" style={{ background: '#0A0F16' }}>
+            <Search size={11} style={{ color: '#3E4A63' }} className="mr-2 flex-shrink-0" />
+            <span className="text-xs font-mono truncate" style={{ color: '#3E4A63' }}>app.xai.io/workspace</span>
           </div>
           <Bell size={14} style={{ color: '#3E4A63' }} />
           <div className="w-7 h-7 rounded-full border flex items-center justify-center text-xs font-mono"
@@ -581,7 +581,7 @@ export default function Dashboard() {
               initial={{ opacity: 0 }}
               animate={visible ? { opacity: 1 } : { opacity: 0 }}
               transition={{ delay: isScrollingDown ? 0.4 : 0, duration: isScrollingDown ? 0.4 : 0 }}
-              className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 border-b flex-shrink-0"
               style={{ borderColor: '#1A2235' }}
             >
               <AnimatePresence mode="wait">
@@ -596,7 +596,7 @@ export default function Dashboard() {
                   <p className="text-xs mt-0.5" style={{ color: '#3E4A63' }}>{currentTitle.subtitle}</p>
                 </motion.div>
               </AnimatePresence>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                 <select 
                   className="text-xs border rounded-lg px-3 py-1.5 outline-none cursor-pointer focus-visible:ring-1 focus-visible:ring-accent"
                   aria-label="Time range filter"
@@ -616,8 +616,26 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
+            {/* Mobile Tab Navigation */}
+            <div className="md:hidden flex overflow-x-auto border-b px-4 py-2 gap-1.5 scrollbar-none bg-[#080D14]" style={{ borderColor: '#1A2235' }}>
+              {NAV_ITEMS.map((n, i) => (
+                <button
+                  key={n.label}
+                  onClick={() => setActiveNav(i)}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    color: activeNav === i ? '#E2E8F0' : colors.muted,
+                    background: activeNav === i ? '#1A2235' : 'transparent',
+                  }}
+                >
+                  {ICON_MAP[n.icon]}
+                  {n.label}
+                </button>
+              ))}
+            </div>
+
             {/* Metric cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-5 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-5 flex-shrink-0">
               <AnimatePresence mode="wait">
                 {currentMetrics.map((m, i) => (
                   <MetricCard key={`${activeNav}-${m.label}`} metric={m} visible={visible} index={i} />
