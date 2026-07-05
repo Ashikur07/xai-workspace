@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { useMousePosition } from '@/hooks/useMousePosition'
 
 // High-quality SVGs for the technology logos
-const NEXT_SVG = `
+export const NEXT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
   <circle cx="50" cy="50" r="48" fill="#000000" stroke="#ffffff" stroke-width="4"/>
   <path d="M78 81 L38 33 H30 V68 H37 V43 L72 85 C74 83.5 76 82.5 78 81 Z" fill="#ffffff"/>
@@ -14,13 +14,13 @@ const NEXT_SVG = `
 </svg>
 `
 
-const TAILWIND_SVG = `
+export const TAILWIND_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
   <path d="M50 20c-13.3 0-21.7 6.7-25 20 5-6.7 10.8-9.2 17.5-7.5 3.8.9 6.5 3.7 9.5 6.8 4.9 5 10.9 10.7 22.9 10.7 13.3 0 21.7-6.7 25-20-5 6.7-10.8 9.2-17.5 7.5-3.8-.9-6.5-3.7-9.5-6.8-5-5-11-10.7-22.9-10.7zm-25 30c-13.3 0-21.7 6.7-25 20 5-6.7 10.8-9.2 17.5-7.5 3.8.9 6.5 3.7 9.5 6.8 4.9 5 10.9 10.7 22.9 10.7 13.3 0 21.7-6.7 25-20-5 6.7-10.8 9.2-17.5 7.5-3.8-.9-6.5-3.7-9.5-6.8-5-5-11-10.7-22.9-10.7z" fill="#38BDF8"/>
 </svg>
 `
 
-const REACT_SVG = `
+export const REACT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 24 24" width="512" height="512">
   <circle cx="0" cy="0" r="2" fill="#61DAFB"/>
   <g stroke="#61DAFB" stroke-width="1.2" fill="none">
@@ -31,14 +31,14 @@ const REACT_SVG = `
 </svg>
 `
 
-const TYPESCRIPT_SVG = `
+export const TYPESCRIPT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
   <rect width="100" height="100" fill="#3178C6" rx="15"/>
   <text x="85" y="80" fill="#FFFFFF" font-family="system-ui, sans-serif" font-weight="bold" font-size="40" text-anchor="end">TS</text>
 </svg>
 `
 
-const JAVASCRIPT_SVG = `
+export const JAVASCRIPT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
   <rect width="100" height="100" fill="#F7DF1E" rx="15"/>
   <text x="85" y="80" fill="#000000" font-family="system-ui, sans-serif" font-weight="bold" font-size="40" text-anchor="end">JS</text>
@@ -61,7 +61,7 @@ const FRAMER_SVG = `
 </svg>
 `
 
-const NODE_SVG = `
+export const NODE_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
   <path d="M50 10 L85 30 V70 L50 90 L15 70 V30 Z" fill="#339933" stroke="#ffffff" stroke-width="2"/>
   <path d="M50 10 L85 30 V70 L50 90 Z" fill="#66cc33" opacity="0.3"/>

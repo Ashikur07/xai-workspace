@@ -411,7 +411,7 @@ function BackgroundGrid() {
 /* ═══════════════════════════════════════════════════════════════
    Three.js Scene wrapper
    ═══════════════════════════════════════════════════════════════ */
-function HeroScene() {
+function HeroScene({ isExport }: { isExport: boolean }) {
   const scrollProgressRef = useRef(0)
 
   useEffect(() => {
@@ -432,7 +432,7 @@ function HeroScene() {
       <BackgroundGrid />
       <ConstellationLines scrollProgress={scrollProgressRef} />
       <ParticleField scrollProgress={scrollProgressRef} />
-      <FloatingIcons />
+      {!isExport && <FloatingIcons />}
       <EffectComposer>
         <Bloom
           intensity={0.5}
@@ -522,7 +522,7 @@ export default function Hero() {
             dpr={[1, 1.5]}
           >
             <Suspense fallback={null}>
-              <HeroScene />
+              <HeroScene isExport={isExport} />
             </Suspense>
           </Canvas>
         ) : (
