@@ -418,21 +418,29 @@ const rowVariants = {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0.25, y: 30, filter: 'blur(3px)' },
+  hidden: (isExport: boolean) => ({
+    opacity: isExport ? 1 : 0.25,
+    y: isExport ? 0 : 30,
+    filter: isExport ? 'none' : 'blur(3px)'
+  }),
   active: (isExport: boolean) => ({
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
+    filter: 'none',
     transition: isExport ? { duration: 0 } : { duration: 0.6, ease: easings.smooth }
   })
 }
 
 const visualVariants = {
-  hidden: { opacity: 0.15, scale: 0.95, filter: 'blur(4px)' },
+  hidden: (isExport: boolean) => ({
+    opacity: isExport ? 1 : 0.15,
+    scale: isExport ? 1 : 0.95,
+    filter: isExport ? 'none' : 'blur(4px)'
+  }),
   active: (isExport: boolean) => ({
     opacity: 1,
     scale: 1,
-    filter: 'blur(0px)',
+    filter: 'none',
     transition: isExport ? { duration: 0 } : { duration: 0.8, ease: easings.smooth }
   })
 }

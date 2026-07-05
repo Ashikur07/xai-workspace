@@ -625,9 +625,9 @@ export default function SignatureInteraction() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={morphTo}
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 16, filter: 'blur(4px)' }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -16, filter: 'blur(4px)' }}
+                initial={{ opacity: isExport ? 1 : 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: isExport ? 1 : 0 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="flex items-center gap-3 mb-4">
