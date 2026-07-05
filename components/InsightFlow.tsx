@@ -513,6 +513,10 @@ export default function InsightFlow() {
                   <motion.div
                     custom={stage.color}
                     variants={nodeVariants}
+                    initial={isExportMode ? "active" : "hidden"}
+                    animate={isExportMode ? "active" : undefined}
+                    whileInView={isExportMode ? undefined : "active"}
+                    viewport={{ once: false, margin: '-20%' }}
                     className="w-10 h-10 rounded-full border-[3px] flex items-center justify-center font-mono text-xs font-semibold bg-bg"
                     style={{
                       color: stage.color,
@@ -526,6 +530,10 @@ export default function InsightFlow() {
                 <motion.div
                   variants={visualVariants}
                   custom={isExportMode}
+                  initial={isExportMode ? "active" : "hidden"}
+                  animate={isExportMode ? "active" : undefined}
+                  whileInView={isExportMode ? undefined : "active"}
+                  viewport={{ once: false, margin: '-20%' }}
                   className={`pl-16 md:pl-0 flex items-center justify-center order-1 ${
                     idx % 2 === 0 ? 'md:order-2' : 'md:order-1'
                   }`}
@@ -548,6 +556,10 @@ export default function InsightFlow() {
                 <motion.div
                   variants={cardVariants}
                   custom={isExportMode}
+                  initial={isExportMode ? "active" : "hidden"}
+                  animate={isExportMode ? "active" : undefined}
+                  whileInView={isExportMode ? undefined : "active"}
+                  viewport={{ once: false, margin: '-20%' }}
                   className={`pl-16 md:pl-0 flex flex-col justify-center order-2 ${
                     idx % 2 === 0 ? 'md:order-1 md:text-right md:items-end' : 'md:order-2 md:text-left md:items-start'
                   }`}
