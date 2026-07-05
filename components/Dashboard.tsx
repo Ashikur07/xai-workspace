@@ -1,6 +1,8 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, createContext, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+const DashboardAnimContext = createContext(true)
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
@@ -55,8 +57,9 @@ function MetricCard({
   visible: boolean
   index: number
 }) {
+  const isScrollingDown = useContext(DashboardAnimContext)
   const animatedValue = useAnimatedCounter(metric.value, visible, {
-    duration: 1800 + index * 150,
+    duration: isScrollingDown ? (1800 + index * 150) : 0,
     decimals: metric.decimals ?? 0,
     suffix: metric.suffix ?? '',
     separator: ',',
@@ -66,7 +69,7 @@ function MetricCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-      transition={{ delay: 0.2 + index * 0.08, duration: 0.5, ease: easings.smooth }}
+      transition={{ delay: isScrollingDown ? (0.2 + index * 0.08) : 0, duration: isScrollingDown ? 0.5 : 0, ease: easings.smooth }}
     >
       <Card glass padding="md" className="cursor-default group">
         <div className="flex items-start justify-between mb-3">
@@ -92,6 +95,7 @@ function MetricCard({
 
 /* ── 0: Overview ── */
 function OverviewView({ visible }: { visible: boolean }) {
+  const isScrollingDown = useContext(DashboardAnimContext)
   const [hoverBar, setHoverBar] = useState<number | null>(null)
   return (
     <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
@@ -124,7 +128,7 @@ function OverviewView({ visible }: { visible: boolean }) {
               }}
               initial={{ scaleY: 0 }}
               animate={visible ? { scaleY: 1 } : { scaleY: 0 }}
-              transition={{ delay: 0.4 + i * 0.04, duration: 0.6, ease: easings.bounce }}
+              transition={{ delay: isScrollingDown ? (0.4 + i * 0.04) : 0, duration: isScrollingDown ? 0.6 : 0, ease: easings.bounce }}
               onHoverStart={() => setHoverBar(i)}
               onHoverEnd={() => setHoverBar(null)}
             />
@@ -147,6 +151,7 @@ function OverviewView({ visible }: { visible: boolean }) {
 
 /* â”€â”€ 1: Insights â”€â”€ */
 function InsightsView({ visible }: { visible: boolean }) {
+  const isScrollingDown = useContext(DashboardAnimContext)
   const severityColor: Record<string, string> = {
     critical: '#F87171', high: '#FBBF24', medium: '#5B8DEF', low: '#6B7A99',
   }
@@ -176,7 +181,7 @@ function InsightsView({ visible }: { visible: boolean }) {
           style={{ background: '#0A0F16', borderColor: '#1A2235' }}
           initial={{ opacity: 0, x: -12 }}
           animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -12 }}
-          transition={{ delay: i * 0.07, duration: 0.3 }}
+          transition={{ delay: isScrollingDown ? (i * 0.07) : 0, duration: isScrollingDown ? 0.3 : 0 }}
           whileHover={{ x: 4, borderColor: '#253350' }}
         >
           <motion.span
@@ -187,7 +192,7 @@ function InsightsView({ visible }: { visible: boolean }) {
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm truncate" style={{ color: '#E2E8F0' }}>{item.title}</p>
-            <p className="text-xs mt-0.5" style={{ color: '#3E4A63' }}>{item.category} Â· {item.time}</p>
+            <p className="text-xs mt-0.5" style={{ color: '#3E4A63' }}>{item.category} · {item.time}</p>
           </div>
           <div className="hidden sm:flex items-center gap-2 w-28">
             <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: '#1A2235' }}>
@@ -196,7 +201,7 @@ function InsightsView({ visible }: { visible: boolean }) {
                 style={{ background: item.color }}
                 initial={{ width: 0 }}
                 animate={visible ? { width: `${item.confidence}%` } : { width: 0 }}
-                transition={{ duration: 1, delay: 0.3 + i * 0.05 }}
+                transition={{ duration: isScrollingDown ? 1 : 0, delay: isScrollingDown ? (0.3 + i * 0.05) : 0 }}
               />
             </div>
             <span className="text-xs font-mono w-8 text-right" style={{ color: '#6B7A99' }}>{item.confidence}%</span>
@@ -246,6 +251,7 @@ function SourcesView({ visible }: { visible: boolean }) {
 
 /* ── 3: Analytics ── */
 function AnalyticsView({ visible }: { visible: boolean }) {
+  const isScrollingDown = useContext(DashboardAnimContext)
   const maxQ = Math.max(...PERFORMANCE_DATA.map(d => d.queries))
   return (
     <motion.div key="analytics-view" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
@@ -269,7 +275,7 @@ function AnalyticsView({ visible }: { visible: boolean }) {
                 style={{ height: `${(d.queries / maxQ) * 100}%`, background: '#5B8DEF', transformOrigin: 'bottom', opacity: 0.5 + (d.queries / maxQ) * 0.5 }}
                 initial={{ scaleY: 0 }}
                 animate={visible ? { scaleY: 1 } : { scaleY: 0 }}
-                transition={{ delay: 0.2 + i * 0.05, duration: 0.5, ease: easings.bounce }}
+                transition={{ delay: isScrollingDown ? (0.2 + i * 0.05) : 0, duration: isScrollingDown ? 0.5 : 0, ease: easings.bounce }}
               />
             ))}
           </div>
@@ -295,7 +301,7 @@ function AnalyticsView({ visible }: { visible: boolean }) {
                     style={{ background: item.color }}
                     initial={{ width: 0 }}
                     animate={visible ? { width: `${item.value}%` } : { width: 0 }}
-                    transition={{ duration: 1, delay: 0.3 + i * 0.08 }}
+                    transition={{ duration: isScrollingDown ? 1 : 0, delay: isScrollingDown ? (0.3 + i * 0.08) : 0 }}
                   />
                 </div>
               </div>
@@ -316,7 +322,7 @@ function AnalyticsView({ visible }: { visible: boolean }) {
               style={{ borderColor: '#1A223540' }}
               initial={{ opacity: 0, x: -8 }}
               animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-              transition={{ delay: 0.4 + i * 0.06, duration: 0.3 }}
+              transition={{ delay: isScrollingDown ? (0.4 + i * 0.06) : 0, duration: isScrollingDown ? 0.3 : 0 }}
               whileHover={{ x: 3 }}
             >
               <motion.span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }}
@@ -335,6 +341,7 @@ function AnalyticsView({ visible }: { visible: boolean }) {
 
 /* ── 4: Pipeline ── */
 function PipelineView({ visible }: { visible: boolean }) {
+  const isScrollingDown = useContext(DashboardAnimContext)
   return (
     <motion.div key="pipeline-view" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
       <Card glass padding="md" hover={false} className="mb-4">
@@ -344,7 +351,7 @@ function PipelineView({ visible }: { visible: boolean }) {
             <motion.div key={stage.name}
               initial={{ opacity: 0, x: -10 }}
               animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-              transition={{ delay: 0.15 + i * 0.08, duration: 0.4 }}
+              transition={{ delay: isScrollingDown ? (0.15 + i * 0.08) : 0, duration: isScrollingDown ? 0.4 : 0 }}
             >
               <div className="flex items-center gap-3">
                 <span className="text-xs w-28 flex-shrink-0" style={{ color: '#8892A4' }}>{stage.name}</span>
@@ -354,7 +361,7 @@ function PipelineView({ visible }: { visible: boolean }) {
                     style={{ background: stage.color, boxShadow: stage.status === 'running' ? `0 0 8px ${stage.color}60` : 'none' }}
                     initial={{ width: 0 }}
                     animate={visible ? { width: `${stage.progress}%` } : { width: 0 }}
-                    transition={{ duration: 1.2, delay: 0.3 + i * 0.1 }}
+                    transition={{ duration: isScrollingDown ? 1.2 : 0, delay: isScrollingDown ? (0.3 + i * 0.1) : 0 }}
                   />
                 </div>
                 <span className="text-xs font-mono w-9 text-right" style={{ color: stage.color }}>
@@ -388,7 +395,7 @@ function PipelineView({ visible }: { visible: boolean }) {
               style={{ borderColor: '#1A223540' }}
               initial={{ opacity: 0 }}
               animate={visible ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ delay: 0.3 + i * 0.06 }}
+              transition={{ delay: isScrollingDown ? (0.3 + i * 0.06) : 0, duration: isScrollingDown ? 0.3 : 0 }}
             >
               <Zap size={12} style={{ color: a.enabled ? '#5B8DEF' : '#3E4A63', flexShrink: 0 }} />
               <span className="text-xs flex-1 truncate" style={{ color: '#E2E8F0' }}>{a.name}</span>
@@ -410,7 +417,7 @@ function PipelineView({ visible }: { visible: boolean }) {
               style={{ borderColor: '#1A223540' }}
               initial={{ opacity: 0 }}
               animate={visible ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ delay: 0.3 + i * 0.06 }}
+              transition={{ delay: isScrollingDown ? (0.3 + i * 0.06) : 0, duration: isScrollingDown ? 0.3 : 0 }}
             >
               {run.status === 'success'
                 ? <CheckCircle2 size={13} style={{ color: '#34D399', flexShrink: 0 }} />
@@ -434,6 +441,7 @@ export default function Dashboard() {
   const [activeNav, setActiveNav] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
+  const [isScrollingDown, setIsScrollingDown] = useState(true)
   const isExport = useIsExport()
 
   useEffect(() => {
@@ -450,10 +458,20 @@ export default function Dashboard() {
       trigger: sectionRef.current,
       start: 'top 80%',
       end: 'bottom 20%',
-      onEnter: () => setVisible(true),
-      onLeave: () => setVisible(false),
-      onEnterBack: () => setVisible(true),
-      onLeaveBack: () => setVisible(false),
+      onEnter: () => {
+        setIsScrollingDown(true)
+        setVisible(true)
+      },
+      onLeave: () => {
+        setVisible(false)
+      },
+      onEnterBack: () => {
+        setIsScrollingDown(false)
+        setVisible(true)
+      },
+      onLeaveBack: () => {
+        setVisible(false)
+      },
     })
     return () => { trigger.kill() }
   }, [isExport])
@@ -462,10 +480,11 @@ export default function Dashboard() {
   const currentTitle   = VIEW_TITLES[activeNav]
 
   return (
-    <section ref={sectionRef} className="py-32 px-6 relative">
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 50% 40% at 50% 30%, rgba(91,141,239,0.04) 0%, transparent 70%)' }}
-      />
+    <DashboardAnimContext.Provider value={isScrollingDown}>
+      <section ref={sectionRef} className="py-32 px-6 relative">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 50% 40% at 50% 30%, rgba(91,141,239,0.04) 0%, transparent 70%)' }}
+        />
       <SectionHeader
         tag="Intelligence Dashboard"
         title="Everything in one view"
@@ -506,11 +525,11 @@ export default function Dashboard() {
         <div className="flex" style={{ minHeight: 540 }}>
           {/* Sidebar */}
           <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: easings.smooth }}
             className="w-52 border-r flex flex-col py-4 px-3 flex-shrink-0 hidden md:flex"
             style={{ borderColor: '#1A2235' }}
+            initial={{ opacity: 0, x: -16 }}
+            animate={visible ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
+            transition={{ delay: isScrollingDown ? 0.3 : 0, duration: isScrollingDown ? 0.5 : 0, ease: easings.smooth }}
           >
             <div className="flex items-center gap-2 px-2 mb-6">
               <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: '#5B8DEF' }}>
@@ -561,7 +580,7 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={visible ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
+              transition={{ delay: isScrollingDown ? 0.4 : 0, duration: isScrollingDown ? 0.4 : 0 }}
               className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
               style={{ borderColor: '#1A2235' }}
             >
@@ -628,5 +647,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
     </section>
+    </DashboardAnimContext.Provider>
   )
 }
