@@ -10,6 +10,7 @@ import Badge from '@/components/ui/Badge'
 import { easings } from '@/lib/constants'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import FloatingIcons from '@/components/FloatingIcons'
+import { useIsExport } from '@/hooks/useIsExport'
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -466,22 +467,22 @@ export default function Hero() {
     }
   }, [])
 
+  const isExport = useIsExport()
+
   const container = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } },
+    show: { transition: { staggerChildren: isExport ? 0 : 0.12, delayChildren: isExport ? 0 : 0.3 } },
   }
   
-  const item = prefersReducedMotion ? {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { duration: 0.4 },
-    },
-  } : {
+  const item = {
     hidden: { opacity: 0, y: 32, filter: 'blur(8px)' },
     show: {
-      opacity: 1, y: 0, filter: 'blur(0px)',
-      transition: { duration: 0.8, ease: easings.smooth },
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: isExport 
+        ? { duration: 0 } 
+        : { duration: prefersReducedMotion ? 0.4 : 0.8, ease: easings.smooth },
     },
   }
 
@@ -498,7 +499,7 @@ export default function Hero() {
             background: 'radial-gradient(circle, rgba(91,141,239,0.08) 0%, transparent 65%)',
             top: '5%', left: '10%',
           }}
-          animate={prefersReducedMotion ? {} : { x: [0, 40, 0], y: [0, -30, 0] }}
+          animate={(prefersReducedMotion || isExport) ? {} : { x: [0, 40, 0], y: [0, -30, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
@@ -507,7 +508,7 @@ export default function Hero() {
             background: 'radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 65%)',
             bottom: '15%', right: '5%',
           }}
-          animate={prefersReducedMotion ? {} : { x: [0, -30, 0], y: [0, 20, 0] }}
+          animate={(prefersReducedMotion || isExport) ? {} : { x: [0, -30, 0], y: [0, 20, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
         />
       </div>
@@ -543,7 +544,6 @@ export default function Hero() {
         }}
       />
 
-      {/* Content centered over the dark radial overlay */}
       <motion.div
         className="relative z-20 text-center px-6 max-w-5xl mx-auto"
         variants={container}

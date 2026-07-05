@@ -302,6 +302,20 @@ export default function InsightFlow() {
 
   const activeStageRef = useRef(0)
 
+  const [isExportMode, setIsExportMode] = useState(false)
+
+  // Detect export/figma mode from URL query parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('export') === 'true' || params.get('figma') === 'true') {
+        setIsExportMode(true)
+        // Set initial stage progress to Ingest (stage 0)
+        smoothProgressVal.set(0.16)
+      }
+    }
+  }, [smoothProgressVal])
+
   // Physics animation update logic using a responsive LERP (0.12 factor)
   const updatePhysics = useCallback(() => {
     const diff = targetProgressRef.current - currentProgressRef.current
@@ -333,6 +347,7 @@ export default function InsightFlow() {
 
   // Use ScrollTrigger to calculate progress reliably across all browsers/layouts
   useEffect(() => {
+    if (isExportMode) return
     if (!outerRef.current) return
 
     gsap.registerPlugin(ScrollTrigger)
@@ -357,12 +372,19 @@ export default function InsightFlow() {
       trigger.kill()
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [updatePhysics])
+  }, [updatePhysics, isExportMode])
 
   const activeData = INSIGHT_STAGES[activeStage]
 
   // Interactive tab click handler - scrolls cleanly to stage height using ScrollTrigger positions
   const scrollToStage = (stageIndex: number) => {
+    if (isExportMode) {
+      setActiveStage(stageIndex)
+      const targetP = stageIndex === 0 ? 0.16 : stageIndex === 1 ? 0.5 : 0.84
+      smoothProgressVal.set(targetP)
+      return
+    }
+
     const trigger = triggerRef.current
     if (!trigger) return
 
@@ -393,12 +415,12 @@ export default function InsightFlow() {
 
   return (
     /* Outer: gives 4 "screens" of scroll space for slow smooth transitions */
-    <div ref={outerRef} style={{ height: '400vh', position: 'relative' }}>
+    <div ref={outerRef} style={{ height: isExportMode ? 'auto' : '400vh', position: 'relative' }}>
       {/* Inner: sticks to viewport top as we scroll */}
       <div
         ref={innerRef}
         style={{
-          position: 'sticky',
+          position: isExportMode ? 'relative' : 'sticky',
           top: 0,
           height: '100vh',
           background: colors.bg,

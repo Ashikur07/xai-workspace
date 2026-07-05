@@ -2,7 +2,11 @@
 import { motion } from 'framer-motion'
 import { motionVariants } from '@/lib/constants'
 
+import { useIsExport } from '@/hooks/useIsExport'
+
 export default function Footer() {
+  const isExport = useIsExport()
+
   return (
     <footer className="border-t py-20 px-6 relative" style={{ borderColor: '#1A2235' }}>
       {/* Subtle top gradient */}
@@ -12,12 +16,13 @@ export default function Footer() {
       <motion.div
         className="max-w-6xl mx-auto"
         initial="hidden"
-        whileInView="show"
-        viewport={{ once: false, margin: '-50px' }}
+        animate={isExport ? "show" : undefined}
+        whileInView={isExport ? undefined : "show"}
+        viewport={isExport ? undefined : { once: false, margin: '-50px' }}
         variants={motionVariants.container}
       >
         <div className="grid md:grid-cols-4 gap-12 mb-16">
-          <motion.div variants={motionVariants.fadeUp}>
+          <motion.div variants={motionVariants.fadeUp} transition={isExport ? { duration: 0 } : undefined}>
             <div className="flex items-center gap-2.5 mb-5">
               <div className="w-7 h-7 rounded-md flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #4338CA, #5B8DEF)' }}>
@@ -34,7 +39,7 @@ export default function Footer() {
             { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press'] },
             { title: 'Legal', links: ['Privacy', 'Terms', 'Security', 'Status'] },
           ].map((col) => (
-            <motion.div key={col.title} variants={motionVariants.fadeUp}>
+            <motion.div key={col.title} variants={motionVariants.fadeUp} transition={isExport ? { duration: 0 } : undefined}>
               <p className="text-sm font-medium mb-5" style={{ color: '#E2E8F0' }}>{col.title}</p>
               <ul className="space-y-3">
                 {col.links.map((l) => (
@@ -51,6 +56,7 @@ export default function Footer() {
         </div>
         <motion.div
           variants={motionVariants.fadeUp}
+          transition={isExport ? { duration: 0 } : undefined}
           className="border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
           style={{ borderColor: '#1A2235' }}
         >

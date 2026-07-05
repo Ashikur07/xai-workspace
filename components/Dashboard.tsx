@@ -18,6 +18,7 @@ import Card from '@/components/ui/Card'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { easings, colors } from '@/lib/constants'
 import SourcesTable from '@/components/ui/SourcesTable'
+import { useIsExport } from '@/hooks/useIsExport'
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   home:     <Home size={14} />,
@@ -433,9 +434,17 @@ export default function Dashboard() {
   const [activeNav, setActiveNav] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
+  const isExport = useIsExport()
 
   useEffect(() => {
     if (!sectionRef.current) return
+    
+    // Check if export mode is enabled
+    if (isExport) {
+      setVisible(true)
+      return
+    }
+
     gsap.registerPlugin(ScrollTrigger)
     const trigger = ScrollTrigger.create({
       trigger: sectionRef.current,
@@ -447,7 +456,7 @@ export default function Dashboard() {
       onLeaveBack: () => setVisible(false),
     })
     return () => { trigger.kill() }
-  }, [])
+  }, [isExport])
 
   const currentMetrics = VIEW_METRICS[activeNav]
   const currentTitle   = VIEW_TITLES[activeNav]
@@ -463,10 +472,11 @@ export default function Dashboard() {
         description="A unified workspace for data intelligence, real-time signals, and automated actions."
       />
       <motion.div
-        initial={{ opacity: 0, y: 32 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 0.8, ease: easings.smooth }}
+        initial={isExport ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
+        animate={isExport ? { opacity: 1, y: 0 } : undefined}
+        whileInView={isExport ? undefined : { opacity: 1, y: 0 }}
+        viewport={isExport ? undefined : { once: true, margin: '-100px' }}
+        transition={isExport ? { duration: 0 } : { duration: 0.8, ease: easings.smooth }}
         className="max-w-6xl mx-auto rounded-2xl border overflow-hidden"
         style={{
           background: 'rgba(12,17,24,0.6)',

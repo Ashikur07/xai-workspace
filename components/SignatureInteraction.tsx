@@ -7,6 +7,7 @@ import { useMousePosition } from '@/hooks/useMousePosition'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { easings, colors } from '@/lib/constants'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { useIsExport } from '@/hooks/useIsExport'
 
 type MorphState = 'sphere' | 'cube' | 'torus'
 
@@ -444,6 +445,7 @@ export default function SignatureInteraction() {
   const [webglAvailable, setWebGLAvailable] = useState(true)
   const [isHovered, setIsHovered] = useState(false)
   const prefersReducedMotion = usePrefersReducedMotion()
+  const isExport = useIsExport()
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -462,7 +464,7 @@ export default function SignatureInteraction() {
 
   const startCycle = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
-    if (prefersReducedMotion) return // disable auto-cycle for reduced motion
+    if (prefersReducedMotion || isExport) return // disable auto-cycle for reduced motion or export mode
     
     intervalRef.current = setInterval(() => {
       setMorphTo(prev => {
@@ -474,13 +476,17 @@ export default function SignatureInteraction() {
 
   // Manage auto-cycling based on user hover state to let interactive intent win
   useEffect(() => {
+    if (isExport) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      return
+    }
     if (isHovered) {
       if (intervalRef.current) clearInterval(intervalRef.current)
     } else {
       startCycle()
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [isHovered, prefersReducedMotion])
+  }, [isHovered, prefersReducedMotion, isExport])
 
   const handleCanvasClick = () => {
     setMorphTo(prev => {

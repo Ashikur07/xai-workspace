@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import GSAPProvider from '@/components/providers/GSAPProvider'
 import LoadingScreen from '@/components/ui/LoadingScreen'
+import { useIsExport } from '@/hooks/useIsExport'
 
 // Dynamic imports — disable SSR for Three.js / GSAP components
 const Hero                 = dynamic(() => import('@/components/Hero'),                 { ssr: false })
@@ -13,10 +14,12 @@ const Dashboard            = dynamic(() => import('@/components/Dashboard'),    
 const SignatureInteraction = dynamic(() => import('@/components/SignatureInteraction'), { ssr: false })
 
 export default function Home() {
+  const isExport = useIsExport()
+
   return (
     <GSAPProvider>
       {/* Loading screen — self-manages lifecycle and fades out */}
-      <LoadingScreen />
+      {!isExport && <LoadingScreen />}
 
       <main className="min-h-screen" style={{ background: '#060A0F', color: '#E2E8F0' }}>
         <Navbar />

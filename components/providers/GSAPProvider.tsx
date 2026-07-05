@@ -27,11 +27,13 @@ export default function GSAPProvider({ children }: { children: React.ReactNode }
     })
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const params = new URLSearchParams(window.location.search)
+    const isExport = params.get('export') === 'true' || params.get('figma') === 'true'
 
     let lenisInst: Lenis | null = null
     let tickerUpdate: ((time: number) => void) | null = null
 
-    if (!prefersReducedMotion) {
+    if (!prefersReducedMotion && !isExport) {
       // Initialize Lenis smooth scroll
       lenisInst = new Lenis({
         duration: 1.1,
