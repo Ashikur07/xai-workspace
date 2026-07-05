@@ -29,7 +29,7 @@ export function useAnimatedCounter(
     const animate = (timestamp: number) => {
       if (startTime.current === null) startTime.current = timestamp
       const elapsed = timestamp - startTime.current
-      const progress = Math.min(elapsed / duration, 1)
+      const progress = duration <= 0 ? 1 : Math.min(elapsed / duration, 1)
       const eased = easeOutExpo(progress)
       const current = eased * target
 

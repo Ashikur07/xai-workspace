@@ -463,7 +463,7 @@ export default function Dashboard() {
         setVisible(true)
       },
       onLeave: () => {
-        setVisible(false)
+        // Keep it visible when leaving downwards so it stays fully rendered when scrolling back up
       },
       onEnterBack: () => {
         setIsScrollingDown(false)
