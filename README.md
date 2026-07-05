@@ -2,191 +2,108 @@
 
 > *From raw data → structured intelligence → actionable insight → AI Automations*
 
-A high-fidelity interactive product experience built for the RacoAI frontend engineering challenge. Designed and implemented to demonstrate UI/UX clarity, advanced motion & 3D interaction, and engineering discipline.
+A high-fidelity, interactive product experience built for the RacoAI frontend engineering challenge. Designed and implemented to demonstrate UI/UX clarity, design-to-code execution, advanced motion & 3D interaction, and engineering discipline.
 
 ---
 
-## Live Demo
+## 🔗 Project Links
 
-**[xai-workspace.vercel.app](https://xai-workspace.vercel.app)** ← Deploy URL goes here
-
----
-
-## Tech Stack
-
-| Layer         | Technology                                                    |
-|---------------|---------------------------------------------------------------|
-| Framework     | **Next.js 14** (App Router, TypeScript)                       |
-| 3D / WebGL    | **Three.js** + **React Three Fiber** + **@react-three/drei** |
-| Post-Process  | **@react-three/postprocessing** (Bloom, Chromatic Aberration) |
-| UI Animation  | **Framer Motion** (layout animations, AnimatePresence)        |
-| Scroll FX     | **GSAP** + **ScrollTrigger** (pinning, scrubbing, timelines)  |
-| Styling       | **Tailwind CSS** + custom CSS utilities                       |
-| Icons         | **Lucide React**                                              |
-| Fonts         | **Inter** (UI) + **JetBrains Mono** (data/code)              |
-| Deployment    | **Vercel**                                                    |
+* **Live Deployment URL:** [https://xai-workspace-ashik.vercel.app/](https://xai-workspace-ashik.vercel.app/)
+* **Figma Design File URL:** [Figma Design Link](https://www.figma.com/design/53rFKPrnyBepeKGaJnFGmD/Xai---Intelligence-Workspace-%7C-UI-Design?node-id=0-1&t=YGEoz2VE7QuUN965-1)
+* **GitHub Repository:** [https://github.com/Ashikur07/xai-workspace](https://github.com/Ashikur07/xai-workspace)
 
 ---
 
-## Getting Started
+## 🛠️ Technology Stack
+
+| Layer | Technology | Rationale |
+| :--- | :--- | :--- |
+| **Framework** | **Next.js 14** (App Router, TS) | Production-ready routing, SSR performance, and clean directory structure. |
+| **3D / WebGL** | **Three.js** + **React Three Fiber** | Custom vertex/fragment shader animations running on the GPU. |
+| **Post-Process**| **@react-three/postprocessing** | Bloom filters for organic light emissions on vector cores. |
+| **Animations** | **Framer Motion** | Declarative layout transitions, shared layout keys (`layoutId`), and UI orchestrations. |
+| **Scroll Engine** | **GSAP** + **ScrollTrigger** | Precise ScrollTrigger hooks for pinning, direction checks, and sync. |
+| **Smooth Scroll**| **Lenis Scroll** | Kinematics scroll interpolation for uniform feel across systems. |
+| **Styling** | **Tailwind CSS** + Custom CSS | CSS custom properties, utility classes, and glassmorphic panels. |
+
+---
+
+## 🚀 Getting Started
+
+To run the project locally, clone the repository and run the development server:
 
 ```bash
+# Clone the repository
+git clone https://github.com/Ashikur07/xai-workspace.git
+cd xai-workspace
+
+# Install dependencies
 npm install
+
+# Run the development server
 npm run dev
-# Open http://localhost:3000
 ```
 
-Production build:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+To build the production bundle:
 ```bash
-npm run build && npm start
+npm run build
+npm start
 ```
 
 ---
 
-## Sections & Features
+## 🎨 Interactive Sections & Key Features
 
-### 1. Hero — Data → Intelligence
-- **5,000-particle custom shader system** using `ShaderMaterial` with per-vertex size variation, opacity, and additive glow
-- Particles morph from **chaotic sphere distribution → structured grid** on scroll — representing the raw-to-intelligence transformation
-- **Constellation connecting lines** drawn between nearby particles (visible in chaos state, fade as grid forms)
-- **Bloom post-processing** via `@react-three/postprocessing` for organic glow
-- Real-time **mouse parallax** — camera rotation follows cursor position via ref (no re-renders)
-- Framer Motion **stagger entrance** with blur-fade-up animations (badge → headline → subtext → CTAs)
-- Reusable `<Badge>` and `<GlowButton>` components
+### 1. Hero Section — Data → Intelligence
+* **3D Particle Shader System:** A centerpiece WebGL `<Canvas>` rendering a 1,600-point particle field using a custom `ShaderMaterial`.
+* **Scroll-Driven Morphing:** Points morph dynamically from an **abstract chaotic sphere distribution ↔ a structured 2D grid** based on viewport scroll progress (`uProgress`).
+* **Mouse Repulsion Physics:** Custom GLSL logic pushes particles away from the cursor in real-time, creating a tactile "bubble" repulsion field.
+* **Figma Headless Mode:** Passing `?export=true` freezes the particle field in its initial sphere layout, stops the drift clock, and hides floating icons to ensure pixel-perfect, uncropped vector screenshotting.
 
-### 2. Scroll-Pinned Insight Flow
-- **GSAP ScrollTrigger** with `pin: true` and `scrub: 0.8` — section pins to viewport for **300vh of scroll distance**
-- Three scroll-driven stages (0–33% / 33–66% / 66–100%):
-  - **Ingest Data** — Animated SVG data stream with 24 orbiting particles converging inward
-  - **Analyze with AI** — Animated neural network nodes with connection lines drawing progressively
-  - **Generate Insight** — Animated bar chart with trend line and insight badges appearing
-- All SVG animations are **driven by scroll progress** (0–1 normalized value), not timers
-- Animated **progress bar** tracks current stage
-- `layoutId` **spring-animated tab indicator** between stages
+### 2. Interactive Insight Flow
+* **Glowing Progress Timeline:** Explains the three stages (Ingest Data, Analyze with AI, Generate Insight) using a vertical alternating timeline with a glowing stream line linked to viewport scroll progress.
+* **Custom SVG Visualizers:** No stock illustrations. Custom inline vector components feature continuous infinite CSS keyframe animations (pulsing data nodes, radar waves, data packets) that remain fluid in all states.
+* **Headless Override:** When `export=true` is enabled, all stages are instantly fully visible (opacity 1.0, blur 0px) and the timeline progress line is set to 100% height to ensure clean capture.
 
 ### 3. Intelligence Dashboard Preview
-- Full **mock product UI**: sidebar nav, top bar, metric cards, chart, data table, signal feed, automation toggles
-- **Glassmorphism panels** with `backdrop-filter: blur(20px)` and layered box-shadows
-- **Animated number counters** — metric values count up from 0 on scroll enter (custom `useAnimatedCounter` hook with easeOutExpo)
-- **Sparkline mini-charts** inline in each metric card
-- Bar chart with **animated bars** (scaleY spring on enter) + hover highlight + tooltips
-- Confidence bar **progressive fill** animations with color coding (green/blue/yellow thresholds)
-- `AnimatePresence` **tab switching** (Overview / Signals / Automations)
-- All data centralized in `lib/data.ts`
+* **High-Fidelity Mock UI:** A dark-themed SaaS console workspace featuring metrics count-up, sparkline charts, connected tables, action buttons, and switchable navigation tabs (Overview, Insights, Sources, Analytics, Pipeline).
+* **Scroll Direction-Aware Animations:** 
+  * *Scrolling Down:* Plays staggered entrance animations and delay transitions as elements enter the viewport.
+  * *Scrolling Up:* Bypasses all delays/transitions to show fully loaded elements instantly, avoiding wiggles, flashes, or reset states.
+* **Responsive Layouts:** The sidebar converts to a horizontal scrollable tab row on mobile, metric cards stack into 1-column layouts to give sparklines space, and tables are wrapped in scrollable containers to prevent overflow.
 
-### 4. Signature Interaction — Morphing Point Cloud (WOW Moment)
-- **4,000-particle mesh** that smoothly morphs between three mathematical forms:
-  - **Sphere** → Raw Data (random surface distribution)
-  - **Cube** → Structured Intelligence (6-face surface distribution)
-  - **Torus** → Continuous Flow (parametric torus distribution)
-- **Custom vertex-colored shader** — colors lerp smoothly (blue → purple → green) as form transitions
-- **Dynamic wireframe lines** — connecting line segments between nearby particles, rebuilt each frame
-- **Mouse repulsion field** — particles push away from cursor position using distance-based force
-- **Bloom post-processing** with per-state point light color matching active morph
-- Lerp factor of 0.04 per frame produces organic weighted motion (not mechanical easing)
+### 4. Signature Interaction (WOW Moment)
+* **3D Geometry Morphing:** A Three.js custom vertex-colored shader that morphs particles between three mathematical forms:
+  * **Sphere** (Raw Data)
+  * **Cube** (Structured Intelligence)
+  * **Torus** (Continuous Flow)
+* **State Control & Parameter Sync:** Morphs can be triggered by clicking navigation buttons, clicking the WebGL canvas directly, or via an automated cycle.
+* **URL Parameter Sync:** Pass URL parameters (e.g., `?tab=structured` or `?tab=1`) to load the corresponding tab state instantly on mount.
+* **Subpixel Blur Fix:** Bypasses `y` translations in export mode to avoid WebKit GPU rendering bugs, ensuring 100% sharp text in Figma imports.
 
 ---
 
-## Animation Architecture
+## 📈 Engineering Decisions & Architecture
 
 ```
-Scroll Events
-  └── GSAP ScrollTrigger
-        ├── pin: true — holds section fixed during scroll
-        ├── scrub: 0.8 — smooth lag between scroll and progress
-        └── onUpdate → normalized progress (0-1) drives SVG animations
-
-UI State Transitions
-  └── Framer Motion
-        ├── AnimatePresence → mount/unmount with exit animations
-        ├── layoutId → shared element spring transitions (tabs, underlines)
-        └── whileInView → viewport-triggered entrance animations
-
-3D / WebGL (React Three Fiber)
-  └── useFrame (60fps render loop)
-        ├── Particle position lerp (no re-renders, ref-based)
-        ├── Color lerp via vertex attributes
-        ├── Mouse influence via shared ref (zero re-render cost)
-        └── ShaderMaterial uniform updates (uTime, uMorphProgress)
-
-Post-Processing
-  └── @react-three/postprocessing
-        └── Bloom → luminance-threshold glow on particle points
+                       ┌────────────────────────┐
+                       │   Lenis Scroll Loop    │
+                       └───────────┬────────────┘
+                                   ▼
+                       ┌────────────────────────┐
+                       │ GSAP & ScrollTrigger   │
+                       └───────────┬────────────┘
+                                   ▼
+          ┌────────────────────────┴────────────────────────┐
+          ▼                                                 ▼
+┌──────────────────┐                               ┌──────────────────┐
+│   R3F Canvas     │                               │  Framer Motion   │
+│ (uProgress Sync) │                               │  (Choreography)  │
+└──────────────────┘                               └──────────────────┘
 ```
 
-**Key performance principle:** All per-frame animation data flows through **refs** inside `useFrame` — never state. This maintains 60fps without triggering React's render cycle.
-
----
-
-## Design Decisions
-
-| Decision | Rationale |
-|---|---|
-| `#060A0F` base background | Deeper than typical dark UIs — creates genuine depth without pure black harshness |
-| Additive blending on particles | Creates natural glow without post-processing overhead; particles overlap to create bright cores |
-| Lerp factor 0.04 (morph) | Produces organic, weighted deceleration — particles feel like they have mass |
-| Vertex colors on particles | Smooth color transitions during morph without switching materials (no GPU state change) |
-| `pin + scrub` in InsightFlow | Forces reviewers to engage with each stage deliberately — respects the product narrative |
-| Glassmorphism on dashboard | Creates depth hierarchy: dashboard "floats" above the page rather than sitting flat |
-| `JetBrains Mono` for numbers | Enforces "intelligence tool" feel — data always reads as data |
-| Custom `ShaderMaterial` in Hero | Built-in `PointsMaterial` can't do per-point size variation or custom glow falloff |
-| `useAnimatedCounter` hook | Numbers counting up on enter communicate "live data" even with static mock values |
-
----
-
-## Project Structure
-
-```
-xai-workspace/
-├── app/
-│   ├── layout.tsx           # Root layout, SEO meta, noise overlay
-│   ├── page.tsx             # Page composition, loading screen, dividers
-│   └── globals.css          # Design tokens, glass/glow utilities, noise grain
-├── components/
-│   ├── providers/
-│   │   └── GSAPProvider.tsx # Registers GSAP plugins once at app level
-│   ├── ui/
-│   │   ├── Badge.tsx        # Status pill with optional pulse
-│   │   ├── Card.tsx         # Glass card with hover effects
-│   │   ├── GlowButton.tsx   # Primary/secondary CTA with shimmer
-│   │   ├── LoadingScreen.tsx # Branded loader with progress ring
-│   │   ├── MagneticButton.tsx # Cursor-following magnetic effect
-│   │   └── SectionHeader.tsx # Consistent animated section headers
-│   ├── Navbar.tsx           # Scroll-aware glassmorphism nav
-│   ├── Hero.tsx             # Three.js shader particles + constellation
-│   ├── InsightFlow.tsx      # GSAP pin+scrub, animated SVG stages
-│   ├── Dashboard.tsx        # Mock product UI with all interactions
-│   ├── SignatureInteraction.tsx # Morphing point cloud + shaders
-│   └── Footer.tsx
-├── hooks/
-│   ├── useAnimatedCounter.ts # EaseOutExpo number count-up
-│   ├── useMousePosition.ts   # Normalized mouse coords via ref
-│   └── useScrollProgress.ts  # Scroll progress for element
-├── lib/
-│   ├── constants.ts          # Colors, easings, durations, motion variants
-│   └── data.ts               # All mock data (metrics, table, signals, etc.)
-├── next.config.js            # transpilePackages for Three.js ecosystem
-└── tailwind.config.ts        # Design token extension
-```
-
----
-
-## Deploy
-
-```bash
-npm i -g vercel
-vercel --prod
-```
-
-Or connect GitHub repo to [vercel.com](https://vercel.com) for automatic CI/CD.
-
----
-
-## Key Libraries
-
-- [Next.js 14](https://nextjs.org)
-- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
-- [@react-three/postprocessing](https://github.com/pmndrs/react-postprocessing)
-- [Framer Motion](https://www.framer.com/motion)
-- [GSAP + ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger)
-- [Three.js](https://threejs.org)
+* **Zero-State Renders inside useFrame:** To maintain 60fps on high-resolution displays, all coordinates, mouse coordinates, and shader progress values flow through React **Refs** and update uniforms directly, bypassing React's reconciler/re-render cycles.
+* **Separation of Concerns:** Component structure is highly modular. Mock database structures are separated in `lib/data.ts` and core easings/tokens are kept in `lib/constants.ts`.
+* **Figma-to-Code Engineering:** The layout follows the exact margins, typography hierarchy (`Inter` + `JetBrains Mono` for data reading), and HSL tailormade colors defined in the Figma file.
