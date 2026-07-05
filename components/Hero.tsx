@@ -122,7 +122,7 @@ const lineFragmentShader = `
 /* ═══════════════════════════════════════════════════════════════
    Particle system that morphs chaos → structured grid on scroll
    ═══════════════════════════════════════════════════════════════ */
-function ParticleField({ scrollProgress }: { scrollProgress: React.RefObject<number> }) {
+function ParticleField({ scrollProgress, isExport }: { scrollProgress: React.RefObject<number>; isExport: boolean }) {
   const meshRef = useRef<THREE.Points>(null)
   const mouse = useMousePosition()
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -211,6 +211,14 @@ function ParticleField({ scrollProgress }: { scrollProgress: React.RefObject<num
   useFrame((state) => {
     if (!meshRef.current) return
 
+    if (isExport) {
+      uniforms.uProgress.value = 0
+      uniforms.uTime.value = 0.5
+      meshRef.current.rotation.y = 0.2
+      meshRef.current.rotation.x = 0
+      return
+    }
+
     if (prefersReducedMotion) {
       uniforms.uProgress.value = 1.0
       uniforms.uTime.value = 0
@@ -255,7 +263,7 @@ function ParticleField({ scrollProgress }: { scrollProgress: React.RefObject<num
 /* ═══════════════════════════════════════════════════════════════
    Constellation lines morphing from sphere cluster to grid mesh
    ═══════════════════════════════════════════════════════════════ */
-function ConstellationLines({ scrollProgress }: { scrollProgress: React.RefObject<number> }) {
+function ConstellationLines({ scrollProgress, isExport }: { scrollProgress: React.RefObject<number>; isExport: boolean }) {
   const lineRef = useRef<THREE.LineSegments>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -322,6 +330,14 @@ function ConstellationLines({ scrollProgress }: { scrollProgress: React.RefObjec
   useFrame((state) => {
     if (!lineRef.current) return
     
+    if (isExport) {
+      uniforms.uProgress.value = 0
+      uniforms.uTime.value = 0.5
+      uniforms.uOpacity.value = 0.06
+      lineRef.current.rotation.y = 0.2
+      return
+    }
+
     if (prefersReducedMotion) {
       uniforms.uProgress.value = 1.0
       uniforms.uTime.value = 0
@@ -415,6 +431,7 @@ function HeroScene({ isExport }: { isExport: boolean }) {
   const scrollProgressRef = useRef(0)
 
   useEffect(() => {
+    if (isExport) return
     const onScroll = () => {
       const t = window.scrollY / (window.innerHeight * 0.9)
       scrollProgressRef.current = Math.min(Math.max(t, 0), 1)
@@ -422,7 +439,7 @@ function HeroScene({ isExport }: { isExport: boolean }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [isExport])
 
   return (
     <>
@@ -430,8 +447,8 @@ function HeroScene({ isExport }: { isExport: boolean }) {
       <directionalLight position={[5, 5, 5]} intensity={1.5} color="#5B8DEF" />
       <pointLight position={[-5, -5, 2]} intensity={1.2} color="#A78BFA" />
       <BackgroundGrid />
-      <ConstellationLines scrollProgress={scrollProgressRef} />
-      <ParticleField scrollProgress={scrollProgressRef} />
+      <ConstellationLines scrollProgress={scrollProgressRef} isExport={isExport} />
+      <ParticleField scrollProgress={scrollProgressRef} isExport={isExport} />
       {!isExport && <FloatingIcons />}
       <EffectComposer>
         <Bloom
