@@ -462,6 +462,23 @@ export default function SignatureInteraction() {
     }
   }, [])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get('tab') || params.get('activeTab') || params.get('morph')
+      if (tabParam) {
+        const lowerParam = tabParam.toLowerCase()
+        if (lowerParam === '1' || lowerParam === 'structured' || lowerParam === 'cube' || lowerParam === 'structuredintelligence') {
+          setMorphTo('cube')
+        } else if (lowerParam === '2' || lowerParam === 'continuous' || lowerParam === 'torus' || lowerParam === 'continuousflow') {
+          setMorphTo('torus')
+        } else if (lowerParam === '0' || lowerParam === 'raw' || lowerParam === 'sphere' || lowerParam === 'rawdata') {
+          setMorphTo('sphere')
+        }
+      }
+    }
+  }, [])
+
   const startCycle = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     if (prefersReducedMotion || isExport) return // disable auto-cycle for reduced motion or export mode
