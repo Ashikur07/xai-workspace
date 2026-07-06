@@ -9,6 +9,7 @@ A high-fidelity, interactive product experience built for the RacoAI frontend en
 ## 🔗 Project Links
 
 * **Live Deployment URL:** [https://xai-workspace-ashik.vercel.app/](https://xai-workspace-ashik.vercel.app/)
+* **Project Demo Video:** [https://youtu.be/xm-u9l2iFKQ](https://youtu.be/xm-u9l2iFKQ)
 * **Figma Design File URL:** [Figma Design Link](https://www.figma.com/design/53rFKPrnyBepeKGaJnFGmD/Xai---Intelligence-Workspace-%7C-UI-Design?node-id=0-1&t=YGEoz2VE7QuUN965-1)
 * **GitHub Repository:** [https://github.com/Ashikur07/xai-workspace](https://github.com/Ashikur07/xai-workspace)
 
